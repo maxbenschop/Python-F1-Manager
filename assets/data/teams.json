@@ -1,0 +1,68 @@
+[
+    {
+        "name": "Mercedes",
+        "engine": "Mercedes",
+        "chassis": "Mercedes W14",
+        "available": false
+    },
+    {
+        "name": "Red Bull Racing",
+        "engine": "Honda RBPT",
+        "chassis": "Red Bull RB19",
+        "available": false
+    },
+    {
+        "name": "McLaren",
+        "engine": "Mercedes",
+        "chassis": "McLaren MCL60",
+        "available": false
+    },
+    {
+        "name": "VCARB",
+        "engine": "Honda RBPT",
+        "chassis": "VCARB AT04",
+        "available": false
+    },
+    {
+        "name": "Ferrari",
+        "engine": "Ferrari",
+        "chassis": "Ferrari SF-23",
+        "available": false
+    },
+    {
+        "name": "Haas",
+        "engine": "Ferrari",
+        "chassis": "Haas VF-23",
+        "available": false
+    },
+    {
+        "name": "Cadillac",
+        "engine": "Ferrari",
+        "chassis": "Cadillac C01",
+        "available": true
+    },
+    {
+        "name": "Porsche",
+        "engine": "Porsche",
+        "chassis": "Porsche P01",
+        "available": true
+    },
+    {
+        "name": "Williams",
+        "engine": "Mercedes",
+        "chassis": "Williams FW45",
+        "available": false
+    },
+    {
+        "name": "Alpine",
+        "engine": "Renault",
+        "chassis": "Alpine A523",
+        "available": false
+    },
+    {
+        "name": "Aston Martin",
+        "engine": "Mercedes",
+        "chassis": "Aston Martin AMR23",
+        "available": false
+    }
+]
