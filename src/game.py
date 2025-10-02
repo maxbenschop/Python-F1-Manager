@@ -239,11 +239,12 @@ def start_race(team, driver1, driver2):
             "total_time": result["total_time"],
             "best_lap": result["lap_time"],
             "performance_score": result["performance_score"],
-            "incident": result["incident"]
+            "incident": result["incident"],
+            "status": result.get("status", "Finished")
         })
-    
-    # Sort results by position
-    race_entry["results"].sort(key=lambda x: x["position"])
+
+    # Sort results by position (DNFs have None position, so handle them separately)
+    race_entry["results"].sort(key=lambda x: (x["position"] is None, x["position"] if x["position"] is not None else 999))
     
     # Add race to the races list in save data
     if "races" not in save_data:
