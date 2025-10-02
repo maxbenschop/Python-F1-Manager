@@ -1,6 +1,9 @@
 import json
 import random
 import os
+import sys
+import tty
+import termios
 from typing import Dict, List, Any, Tuple
 
 def load_circuit_data(circuit_id: str) -> Dict[str, Any]:
@@ -151,6 +154,117 @@ def get_all_available_drivers() -> List[str]:
     all_drivers = load_driver_data()
     return list(all_drivers.keys())
 
+def get_key_press():
+    """Get a single key press from user"""
+    fd = sys.stdin.fileno()
+    old_settings = termios.tcgetattr(fd)
+    try:
+        tty.setraw(sys.stdin.fileno())
+        ch = sys.stdin.read(1)
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+    return ch
+
+def simulate_lap_events(race_state: List[Dict], lap_num: int, total_laps: int, overtaking_difficulty: float) -> List[str]:
+    """Simulate events that happen during a lap and return position changes"""
+    events = []
+
+    # Calculate how many position changes should happen this lap
+    # More changes early in race, fewer later
+    lap_progress = lap_num / total_laps
+    max_changes = int(3 * (1 - lap_progress * 0.7))  # 3 changes early, ~1 late
+
+    # Simulate overtakes/position changes
+    num_changes = random.randint(0, max_changes)
+
+    for _ in range(num_changes):
+        # Pick a random position to have a battle (not the leader)
+        if len(race_state) < 2:
+            break
+
+        pos_idx = random.randint(1, len(race_state) - 1)
+
+        # Check if driver behind can overtake (based on performance and track)
+        driver_behind = race_state[pos_idx]
+        driver_ahead = race_state[pos_idx - 1]
+
+        # Calculate overtake probability
+        perf_diff = driver_behind['race_performance'] - driver_ahead['race_performance']
+        overtake_chance = (perf_diff / 10) * overtaking_difficulty * 100
+        overtake_chance = max(5, min(40, overtake_chance))  # Clamp between 5-40%
+
+        if random.uniform(0, 100) < overtake_chance:
+            # Swap positions
+            race_state[pos_idx], race_state[pos_idx - 1] = race_state[pos_idx - 1], race_state[pos_idx]
+            events.append(f"  🏎️  {driver_behind['driver_name']} overtakes {driver_ahead['driver_name']} for P{pos_idx}")
+
+    # Random incidents during the lap
+    if random.uniform(0, 100) < 8:  # 8% chance per lap
+        victim_idx = random.randint(0, len(race_state) - 1)
+        victim = race_state[victim_idx]
+
+        incident_type = random.choice([
+            "goes off track and loses time",
+            "has a moment at the chicane",
+            "locks up into the corner",
+            "runs wide and loses a position"
+        ])
+
+        if incident_type == "runs wide and loses a position" and victim_idx < len(race_state) - 1:
+            # Swap with driver behind
+            race_state[victim_idx], race_state[victim_idx + 1] = race_state[victim_idx + 1], race_state[victim_idx]
+            events.append(f"  ⚠️  {victim['driver_name']} {incident_type}")
+        else:
+            events.append(f"  ⚠️  {victim['driver_name']} {incident_type}")
+
+    # MANDATORY PIT STOPS - Check if drivers need to pit
+    pit_window_start = int(total_laps * 0.25)  # 25% through race
+    pit_window_end = int(total_laps * 0.75)    # 75% through race
+
+    if pit_window_start <= lap_num <= pit_window_end:
+        # Check each driver if they need to pit
+        for driver_state in race_state:
+            if not driver_state.get('has_pitted', False):
+                # Determine if this driver should pit this lap
+                # Spread pit stops across the window
+                laps_in_window = pit_window_end - pit_window_start
+                pit_probability = 100 / laps_in_window  # Evenly distribute
+
+                # Add urgency if getting close to end of window
+                laps_remaining = pit_window_end - lap_num
+                if laps_remaining < 5:
+                    pit_probability *= 2  # Double chance if running out of time
+
+                if random.uniform(0, 100) < pit_probability:
+                    driver_state['has_pitted'] = True
+                    current_pos = race_state.index(driver_state) + 1
+
+                    # Pit stop drops driver back ~3-6 positions
+                    positions_lost = random.randint(3, 6)
+                    new_pos_idx = min(race_state.index(driver_state) + positions_lost, len(race_state) - 1)
+
+                    # Move driver back in order
+                    race_state.remove(driver_state)
+                    race_state.insert(new_pos_idx, driver_state)
+
+                    events.append(f"  🔧 {driver_state['driver_name']} pits from P{current_pos}")
+
+    # Force pit stops for anyone who hasn't pitted by lap 75% + 1
+    if lap_num == pit_window_end + 1:
+        for driver_state in race_state:
+            if not driver_state.get('has_pitted', False):
+                driver_state['has_pitted'] = True
+                current_pos = race_state.index(driver_state) + 1
+                events.append(f"  🔧 {driver_state['driver_name']} makes MANDATORY pit stop from P{current_pos}")
+
+                # Emergency pit - bigger drop
+                positions_lost = random.randint(5, 8)
+                new_pos_idx = min(race_state.index(driver_state) + positions_lost, len(race_state) - 1)
+                race_state.remove(driver_state)
+                race_state.insert(new_pos_idx, driver_state)
+
+    return events
+
 def race_simulation(circuit_id: str, driver_names: List[str] = None) -> Dict[str, Dict[str, Any]]:
     """
     Simulate an F1 race using the MVP simulation algorithm
@@ -224,40 +338,19 @@ def race_simulation(circuit_id: str, driver_names: List[str] = None) -> Dict[str
     for i, result in enumerate(qualifying_results, 1):
         print(f"P{i:2d}. {result['driver_name']:<20} [{result['team']['name']:<12}] {result['quali_time']:.3f}s")
 
-    # Phase 2: Simulate race
+    # Phase 2: Initialize race state
     print("\n🏁 STARTING RACE...")
     print("-" * 60)
 
     race_results = []
     overtaking_difficulty = get_track_overtaking_difficulty(circuit)
-    safety_car = random.uniform(0, 100) < 30  # 30% chance of safety car
+    total_laps = circuit['num_laps']
 
-    if safety_car:
-        print("⚠️  SAFETY CAR deployed during the race!")
-        overtaking_difficulty *= 0.5
-
+    # Build initial race state (all drivers starting from grid positions)
     for grid_pos, quali_result in enumerate(qualifying_results, 1):
         driver = quali_result['driver']
         team = quali_result['team']
         driver_name = quali_result['driver_name']
-
-        # Check for DNF
-        is_dnf, dnf_reason = simulate_dnf(driver, team)
-
-        if is_dnf:
-            race_results.append({
-                'driver_name': driver_name,
-                'driver': driver,
-                'team': team,
-                'grid_position': grid_pos,
-                'final_position': None,
-                'status': 'DNF',
-                'incident': dnf_reason,
-                'race_performance': 0,
-                'total_time': 999999
-            })
-            print(f"❌ {driver_name} - DNF ({dnf_reason})")
-            continue
 
         # Calculate race performance score - balanced formula
         race_performance = (
@@ -271,62 +364,111 @@ def race_simulation(circuit_id: str, driver_names: List[str] = None) -> Dict[str
         # Add moderate race variance
         race_performance += random.uniform(-3, 3)
 
-        # Calculate position change potential - more conservative
-        position_change_potential = (race_performance - 85) / 4.0
-        position_change_potential *= overtaking_difficulty
-
-        # Lap 1 chaos for rookies (moderate chance)
-        if driver.get('experience', 70) < 70 and random.uniform(0, 100) < 12:
-            position_change_potential += random.uniform(2, 6)
-            incident = "Lap 1 incident"
-        else:
-            incident = None
-
-        # Driver mistakes
-        mistake_chance = (100 - driver.get('experience', 70)) * 0.12
-        if random.uniform(0, 100) < mistake_chance:
-            position_change_potential += random.uniform(1, 4)
-            if not incident:
-                incident = "Driver mistake"
-
-        # Random race incidents (strategy, traffic, etc.)
-        if random.uniform(0, 100) < 15 and not incident:
-            position_change_potential += random.uniform(-2, 2)
-            if random.uniform(0, 100) < 40:
-                incident = random.choice(["Slow pit stop", "Traffic", "Lock-up", "Track limits"])
-
-        # Add final randomness
-        position_change = position_change_potential + random.uniform(-2, 2)
-
-        # Calculate estimated position
-        estimated_position = grid_pos + position_change
-        estimated_position = max(1, min(20, estimated_position))
-
         race_results.append({
             'driver_name': driver_name,
             'driver': driver,
             'team': team,
             'grid_position': grid_pos,
-            'estimated_position': estimated_position,
+            'current_position': grid_pos,
             'final_position': None,
-            'status': 'Finished',
-            'incident': incident,
+            'status': 'Running',
+            'incident': None,
             'race_performance': race_performance,
-            'total_time': 0  # Will be calculated later
+            'total_time': 0,
+            'has_pitted': False  # Track mandatory pit stop
         })
 
-    # Sort by estimated position and race performance
-    running_drivers = [r for r in race_results if r['status'] == 'Finished']
-    dnf_drivers = [r for r in race_results if r['status'] == 'DNF']
+    # LAP-BY-LAP SIMULATION
+    print(f"\nPress ENTER for next lap, or 'S' to skip to results\n")
+    input("Press ENTER to start the race...")
 
-    running_drivers.sort(key=lambda x: (x['estimated_position'], -x['race_performance']))
+    skip_to_end = False
+    dnf_drivers = []
+    safety_car_lap = random.randint(int(total_laps * 0.3), int(total_laps * 0.7)) if random.uniform(0, 100) < 30 else None
 
-    # Assign final positions
-    for position, result in enumerate(running_drivers, 1):
-        result['final_position'] = position
+    for lap_num in range(1, total_laps + 1):
+        if skip_to_end:
+            break
+
+        print(f"\n{'=' * 60}")
+        print(f"LAP {lap_num}/{total_laps}")
+        print(f"{'=' * 60}")
+
+        # Get current running drivers
+        running_drivers = [r for r in race_results if r['status'] == 'Running']
+
+        # Safety car event
+        if lap_num == safety_car_lap:
+            print("\n🚨 SAFETY CAR DEPLOYED!")
+            overtaking_difficulty *= 0.3
+
+        # Simulate DNFs (rare per lap)
+        for driver_state in running_drivers:
+            if random.uniform(0, 100) < 1.5:  # 1.5% chance per lap
+                is_dnf, dnf_reason = simulate_dnf(driver_state['driver'], driver_state['team'])
+                if is_dnf:
+                    driver_state['status'] = 'DNF'
+                    driver_state['incident'] = dnf_reason
+                    dnf_drivers.append(driver_state)
+                    print(f"\n❌ {driver_state['driver_name']} retires - {dnf_reason}")
+
+        # Update running drivers after DNFs
+        running_drivers = [r for r in race_results if r['status'] == 'Running']
+
+        # Sort by current position for lap events
+        running_drivers.sort(key=lambda x: x['current_position'])
+
+        # Simulate lap events
+        lap_events = simulate_lap_events(running_drivers, lap_num, total_laps, overtaking_difficulty)
+
+        # Update current positions based on sorted order
+        for idx, driver_state in enumerate(running_drivers, 1):
+            driver_state['current_position'] = idx
+
+        # Display current standings
+        print("\nCurrent Positions:")
+        for idx, driver_state in enumerate(running_drivers[:10], 1):  # Show top 10
+            print(f"  P{idx:2d}. {driver_state['driver_name']:<20} [{driver_state['team']['name']:<12}]")
+
+        if len(running_drivers) > 10:
+            print(f"  ... and {len(running_drivers) - 10} more")
+
+        # Display lap events
+        if lap_events:
+            print("\nLap Events:")
+            for event in lap_events:
+                print(event)
+        else:
+            print("\n  No significant events this lap")
+
+        # Wait for user input
+        if lap_num < total_laps:
+            print(f"\n[ENTER = Next lap | S = Skip to results]")
+            key = get_key_press()
+            if key.lower() == 's':
+                skip_to_end = True
+                print("\n⏩ Skipping to final results...")
+
+    # Final race simulation (if skipped, simulate remaining laps)
+    if skip_to_end:
+        # Quickly simulate remaining laps
+        running_drivers = [r for r in race_results if r['status'] == 'Running']
+        running_drivers.sort(key=lambda x: (-x['race_performance'], x['grid_position']))
+        for position, driver_state in enumerate(running_drivers, 1):
+            driver_state['final_position'] = position
+    else:
+        # Use final positions from lap-by-lap
+        running_drivers = [r for r in race_results if r['status'] == 'Running']
+        running_drivers.sort(key=lambda x: x['current_position'])
+        for position, driver_state in enumerate(running_drivers, 1):
+            driver_state['final_position'] = position
 
     # Phase 3: Calculate realistic time gaps
     winner_time = 5400.0  # Base race time (~90 minutes)
+
+    # Sort running drivers by final position
+    running_drivers = [r for r in race_results if r['status'] == 'Running']
+    running_drivers.sort(key=lambda x: x['final_position'])
 
     for result in running_drivers:
         if result['final_position'] == 1:
@@ -366,8 +508,9 @@ def race_simulation(circuit_id: str, driver_names: List[str] = None) -> Dict[str
     all_results = running_drivers + dnf_drivers
 
     # Print final results
-    print("\n🏆 FINAL RACE RESULTS:")
-    print("-" * 60)
+    print("\n" + "=" * 60)
+    print("🏆 FINAL RACE RESULTS")
+    print("=" * 60)
 
     for result in running_drivers:
         position = result['final_position']
@@ -395,13 +538,15 @@ def race_simulation(circuit_id: str, driver_names: List[str] = None) -> Dict[str
         for result in dnf_drivers:
             print(f"    {result['driver_name']:<20} [{result['team']['name']:<12}] - {result['incident']}")
 
+    print("\n" + "=" * 60)
+
     # Convert to dictionary format for compatibility
     results_dict = {}
     for result in all_results:
         results_dict[result['driver_name']] = {
             'position': result['final_position'],
             'total_time': result['total_time'],
-            'lap_time': result['total_time'] / circuit['num_laps'] if result['status'] == 'Finished' else 0,
+            'lap_time': result['total_time'] / circuit['num_laps'] if result['status'] == 'Running' else 0,
             'performance_score': result['race_performance'],
             'incident': result['incident'],
             'driver_stats': result['driver'],

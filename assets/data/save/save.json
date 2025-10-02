@@ -2,7 +2,7 @@
     "drivers": [
         {
             "name": "Leonardo Fornaroli",
-            "team": "Porsche",
+            "team": "Cadillac",
             "racecraft": 85,
             "pace": 88,
             "qualifying": 87,
@@ -10,7 +10,7 @@
         },
         {
             "name": "Roman Stan\u011bk",
-            "team": "Porsche",
+            "team": "Cadillac",
             "racecraft": 83,
             "pace": 85,
             "qualifying": 84,
@@ -20,209 +20,418 @@
     "races": [
         {
             "circuit": {
-                "id": "las_vegas",
-                "name": "Las Vegas Strip Circuit",
-                "location": "Las Vegas, United States"
+                "id": "monaco",
+                "name": "Circuit de Monaco",
+                "location": "Monte Carlo, Monaco"
             },
             "results": [
                 {
                     "position": 1,
-                    "driver": "George Russell",
-                    "team": "Mercedes",
+                    "driver": "Lando Norris",
+                    "team": "McLaren",
                     "total_time": 5400.0,
-                    "best_lap": 108.0,
-                    "performance_score": 88.63725932986424,
+                    "best_lap": 69.23076923076923,
+                    "performance_score": 87.48660783072931,
                     "incident": null,
-                    "status": "Finished"
+                    "status": "Running"
                 },
                 {
                     "position": 2,
-                    "driver": "Lando Norris",
-                    "team": "McLaren",
-                    "total_time": 5415.946876064494,
-                    "best_lap": 108.31893752128988,
-                    "performance_score": 89.48107415685638,
+                    "driver": "Lance Stroll",
+                    "team": "Aston Martin",
+                    "total_time": 5408.676376525468,
+                    "best_lap": 69.3420048272496,
+                    "performance_score": 87.49259047591694,
                     "incident": null,
-                    "status": "Finished"
+                    "status": "Running"
                 },
                 {
                     "position": 3,
-                    "driver": "Oscar Piastri",
-                    "team": "McLaren",
-                    "total_time": 5419.581217987595,
-                    "best_lap": 108.3916243597519,
-                    "performance_score": 85.92265773331057,
+                    "driver": "George Russell",
+                    "team": "Mercedes",
+                    "total_time": 5417.1728102170255,
+                    "best_lap": 69.45093346432084,
+                    "performance_score": 90.25291838179572,
                     "incident": null,
-                    "status": "Finished"
+                    "status": "Running"
                 },
                 {
                     "position": 4,
                     "driver": "Max Verstappen",
                     "team": "Red Bull",
-                    "total_time": 5439.556902845032,
-                    "best_lap": 108.79113805690064,
-                    "performance_score": 97.0954984024512,
+                    "total_time": 5437.1013374397435,
+                    "best_lap": 69.70642740307363,
+                    "performance_score": 94.50454346743855,
                     "incident": null,
-                    "status": "Finished"
+                    "status": "Running"
                 },
                 {
                     "position": 5,
-                    "driver": "Leonardo Fornaroli",
-                    "team": "Porsche",
-                    "total_time": 5459.223915200063,
-                    "best_lap": 109.18447830400126,
-                    "performance_score": 82.47560238948161,
+                    "driver": "Yuki Tsunoda",
+                    "team": "Red Bull",
+                    "total_time": 5445.396671651431,
+                    "best_lap": 69.812777841685,
+                    "performance_score": 85.38649718341878,
                     "incident": null,
-                    "status": "Finished"
+                    "status": "Running"
                 },
                 {
                     "position": 6,
-                    "driver": "Lewis Hamilton",
-                    "team": "Ferrari",
-                    "total_time": 5461.510420955528,
-                    "best_lap": 109.23020841911057,
-                    "performance_score": 95.65071049452105,
+                    "driver": "Leonardo Fornaroli",
+                    "team": "Cadillac",
+                    "total_time": 5455.828756095652,
+                    "best_lap": 69.94652251404682,
+                    "performance_score": 84.96544317192613,
                     "incident": null,
-                    "status": "Finished"
+                    "status": "Running"
                 },
                 {
                     "position": 7,
-                    "driver": "Fernando Alonso",
-                    "team": "Aston Martin",
-                    "total_time": 5468.47960549796,
-                    "best_lap": 109.3695921099592,
-                    "performance_score": 90.56913297450086,
+                    "driver": "Pierre Gasly",
+                    "team": "Alpine",
+                    "total_time": 5470.457548846819,
+                    "best_lap": 70.13407113906179,
+                    "performance_score": 88.36613807896441,
                     "incident": null,
-                    "status": "Finished"
+                    "status": "Running"
                 },
                 {
                     "position": 8,
-                    "driver": "Lance Stroll",
-                    "team": "Aston Martin",
-                    "total_time": 5475.724753533416,
-                    "best_lap": 109.51449507066833,
-                    "performance_score": 85.3455686167815,
+                    "driver": "Charles Leclerc",
+                    "team": "Ferrari",
+                    "total_time": 5475.4281524182825,
+                    "best_lap": 70.19779682587541,
+                    "performance_score": 93.76384959455582,
                     "incident": null,
-                    "status": "Finished"
+                    "status": "Running"
                 },
                 {
                     "position": 9,
-                    "driver": "Alex Albon",
-                    "team": "Williams",
-                    "total_time": 5485.623364653324,
-                    "best_lap": 109.71246729306648,
-                    "performance_score": 83.34133967800607,
+                    "driver": "Fernando Alonso",
+                    "team": "Aston Martin",
+                    "total_time": 5487.409418598661,
+                    "best_lap": 70.35140280254694,
+                    "performance_score": 95.0762824457213,
                     "incident": null,
-                    "status": "Finished"
+                    "status": "Running"
                 },
                 {
                     "position": 10,
-                    "driver": "Yuki Tsunoda",
-                    "team": "Red Bull",
-                    "total_time": 5491.230522079705,
-                    "best_lap": 109.8246104415941,
-                    "performance_score": 87.96723034788734,
+                    "driver": "Oscar Piastri",
+                    "team": "McLaren",
+                    "total_time": 5500.717303747916,
+                    "best_lap": 70.52201671471687,
+                    "performance_score": 88.77836014636894,
                     "incident": null,
-                    "status": "Finished"
+                    "status": "Running"
                 },
                 {
                     "position": 11,
-                    "driver": "Roman Stan\u011bk",
-                    "team": "Porsche",
-                    "total_time": 5500.609965622355,
-                    "best_lap": 110.0121993124471,
-                    "performance_score": 87.38157352887177,
+                    "driver": "Franco Colapinto",
+                    "team": "Alpine",
+                    "total_time": 5525.072371089253,
+                    "best_lap": 70.83426116781094,
+                    "performance_score": 81.59386007714792,
                     "incident": null,
-                    "status": "Finished"
+                    "status": "Running"
                 },
                 {
                     "position": 12,
-                    "driver": "Liam Lawson",
-                    "team": "Racing Bulls",
-                    "total_time": 5516.348869813041,
-                    "best_lap": 110.32697739626083,
-                    "performance_score": 83.68327787872855,
+                    "driver": "Alex Albon",
+                    "team": "Williams",
+                    "total_time": 5544.55823612384,
+                    "best_lap": 71.08407995030565,
+                    "performance_score": 85.3135165877339,
                     "incident": null,
-                    "status": "Finished"
+                    "status": "Running"
                 },
                 {
                     "position": 13,
-                    "driver": "Carlos Sainz",
-                    "team": "Williams",
-                    "total_time": 5527.462082677059,
-                    "best_lap": 110.54924165354117,
-                    "performance_score": 87.59474288014431,
+                    "driver": "Isack Hadjar",
+                    "team": "Racing Bulls",
+                    "total_time": 5564.576912425594,
+                    "best_lap": 71.34072964648198,
+                    "performance_score": 83.5159116780259,
                     "incident": null,
-                    "status": "Finished"
+                    "status": "Running"
                 },
                 {
                     "position": 14,
-                    "driver": "Esteban Ocon",
-                    "team": "Haas",
-                    "total_time": 5544.121700108614,
-                    "best_lap": 110.88243400217229,
-                    "performance_score": 84.56992325250049,
-                    "incident": "Slow pit stop",
-                    "status": "Finished"
+                    "driver": "Liam Lawson",
+                    "team": "Racing Bulls",
+                    "total_time": 5575.577817956031,
+                    "best_lap": 71.48176689687219,
+                    "performance_score": 81.73188588414143,
+                    "incident": null,
+                    "status": "Running"
                 },
                 {
                     "position": 15,
-                    "driver": "Kimi Antonelli",
-                    "team": "Mercedes",
-                    "total_time": 5549.136074436086,
-                    "best_lap": 110.98272148872172,
-                    "performance_score": 81.3276795670936,
+                    "driver": "Roman Stan\u011bk",
+                    "team": "Cadillac",
+                    "total_time": 5588.72381477712,
+                    "best_lap": 71.6503053176554,
+                    "performance_score": 87.03671247562363,
                     "incident": null,
-                    "status": "Finished"
+                    "status": "Running"
                 },
                 {
                     "position": 16,
-                    "driver": "Franco Colapinto",
-                    "team": "Alpine",
-                    "total_time": 5568.11761884745,
-                    "best_lap": 111.362352376949,
-                    "performance_score": 82.58842392615891,
+                    "driver": "Esteban Ocon",
+                    "team": "Haas",
+                    "total_time": 5594.528368612623,
+                    "best_lap": 71.7247226745208,
+                    "performance_score": 85.87380822229545,
                     "incident": null,
-                    "status": "Finished"
+                    "status": "Running"
                 },
                 {
                     "position": 17,
-                    "driver": "Pierre Gasly",
-                    "team": "Alpine",
-                    "total_time": 5612.105818057023,
-                    "best_lap": 112.24211636114045,
-                    "performance_score": 84.30233869593351,
+                    "driver": "Carlos Sainz",
+                    "team": "Williams",
+                    "total_time": 5614.698043942753,
+                    "best_lap": 71.98330825567632,
+                    "performance_score": 89.35515332512804,
                     "incident": null,
-                    "status": "Finished"
+                    "status": "Running"
+                },
+                {
+                    "position": 18,
+                    "driver": "Oliver Bearman",
+                    "team": "Haas",
+                    "total_time": 5657.370660850571,
+                    "best_lap": 72.53039308782783,
+                    "performance_score": 86.52675391595955,
+                    "incident": null,
+                    "status": "Running"
+                },
+                {
+                    "position": 19,
+                    "driver": "Kimi Antonelli",
+                    "team": "Mercedes",
+                    "total_time": 5677.1896795266985,
+                    "best_lap": 72.7844830708551,
+                    "performance_score": 84.14274195188794,
+                    "incident": null,
+                    "status": "Running"
                 },
                 {
                     "position": null,
+                    "driver": "Lewis Hamilton",
+                    "team": "Ferrari",
+                    "total_time": 0,
+                    "best_lap": 0,
+                    "performance_score": 93.4728562498931,
+                    "incident": "Brake failure",
+                    "status": "DNF"
+                }
+            ]
+        },
+        {
+            "circuit": {
+                "id": "australia",
+                "name": "Albert Park Circuit",
+                "location": "Melbourne, Australia"
+            },
+            "results": [
+                {
+                    "position": 1,
                     "driver": "Charles Leclerc",
                     "team": "Ferrari",
-                    "total_time": 999999,
+                    "total_time": 5400.0,
+                    "best_lap": 93.10344827586206,
+                    "performance_score": 94.69390122566182,
+                    "incident": null,
+                    "status": "Running"
+                },
+                {
+                    "position": 2,
+                    "driver": "Oscar Piastri",
+                    "team": "McLaren",
+                    "total_time": 5410.524366797467,
+                    "best_lap": 93.2849028758184,
+                    "performance_score": 89.07600472704095,
+                    "incident": null,
+                    "status": "Running"
+                },
+                {
+                    "position": 3,
+                    "driver": "Lewis Hamilton",
+                    "team": "Ferrari",
+                    "total_time": 5423.886783135671,
+                    "best_lap": 93.51528936440812,
+                    "performance_score": 92.56372753368579,
+                    "incident": null,
+                    "status": "Running"
+                },
+                {
+                    "position": 4,
+                    "driver": "Lando Norris",
+                    "team": "McLaren",
+                    "total_time": 5441.151483620489,
+                    "best_lap": 93.81295661414636,
+                    "performance_score": 90.75713144257094,
+                    "incident": null,
+                    "status": "Running"
+                },
+                {
+                    "position": 5,
+                    "driver": "George Russell",
+                    "team": "Mercedes",
+                    "total_time": 5447.29937495164,
+                    "best_lap": 93.91895474054552,
+                    "performance_score": 86.75083185110331,
+                    "incident": null,
+                    "status": "Running"
+                },
+                {
+                    "position": 6,
+                    "driver": "Max Verstappen",
+                    "team": "Red Bull",
+                    "total_time": 5464.238758165959,
+                    "best_lap": 94.21101307182687,
+                    "performance_score": 96.6847080399819,
+                    "incident": null,
+                    "status": "Running"
+                },
+                {
+                    "position": 7,
+                    "driver": "Yuki Tsunoda",
+                    "team": "Red Bull",
+                    "total_time": 5476.831015233065,
+                    "best_lap": 94.42812095229422,
+                    "performance_score": 87.9845639252581,
+                    "incident": null,
+                    "status": "Running"
+                },
+                {
+                    "position": 8,
+                    "driver": "Kimi Antonelli",
+                    "team": "Mercedes",
+                    "total_time": 5481.9335111619275,
+                    "best_lap": 94.51609502003323,
+                    "performance_score": 81.2721879187403,
+                    "incident": null,
+                    "status": "Running"
+                },
+                {
+                    "position": 9,
+                    "driver": "Pierre Gasly",
+                    "team": "Alpine",
+                    "total_time": 5485.48146416929,
+                    "best_lap": 94.57726662360845,
+                    "performance_score": 86.76578298457419,
+                    "incident": null,
+                    "status": "Running"
+                },
+                {
+                    "position": 10,
+                    "driver": "Liam Lawson",
+                    "team": "Racing Bulls",
+                    "total_time": 5496.076588430969,
+                    "best_lap": 94.7599411798443,
+                    "performance_score": 85.02510898869464,
+                    "incident": null,
+                    "status": "Running"
+                },
+                {
+                    "position": 11,
+                    "driver": "Alex Albon",
+                    "team": "Williams",
+                    "total_time": 5501.0971401349625,
+                    "best_lap": 94.84650241612005,
+                    "performance_score": 87.11913845302115,
+                    "incident": null,
+                    "status": "Running"
+                },
+                {
+                    "position": 12,
+                    "driver": "Lance Stroll",
+                    "team": "Aston Martin",
+                    "total_time": 5517.35059562373,
+                    "best_lap": 95.12673440730569,
+                    "performance_score": 86.08402345520145,
+                    "incident": null,
+                    "status": "Running"
+                },
+                {
+                    "position": 13,
+                    "driver": "Franco Colapinto",
+                    "team": "Alpine",
+                    "total_time": 5531.254710362375,
+                    "best_lap": 95.36646052348922,
+                    "performance_score": 81.9607585027954,
+                    "incident": null,
+                    "status": "Running"
+                },
+                {
+                    "position": 14,
+                    "driver": "Oliver Bearman",
+                    "team": "Haas",
+                    "total_time": 5554.679500666209,
+                    "best_lap": 95.77033621838291,
+                    "performance_score": 80.98999128754866,
+                    "incident": null,
+                    "status": "Running"
+                },
+                {
+                    "position": 15,
+                    "driver": "Isack Hadjar",
+                    "team": "Racing Bulls",
+                    "total_time": 5562.9427174391685,
+                    "best_lap": 95.91280547308911,
+                    "performance_score": 81.33563822042538,
+                    "incident": null,
+                    "status": "Running"
+                },
+                {
+                    "position": 16,
+                    "driver": "Esteban Ocon",
+                    "team": "Haas",
+                    "total_time": 5574.934603829159,
+                    "best_lap": 96.1195621349855,
+                    "performance_score": 83.52072505559809,
+                    "incident": null,
+                    "status": "Running"
+                },
+                {
+                    "position": 17,
+                    "driver": "Roman Stan\u011bk",
+                    "team": "Cadillac",
+                    "total_time": 5582.1204398321715,
+                    "best_lap": 96.24345585917537,
+                    "performance_score": 84.79186045589277,
+                    "incident": null,
+                    "status": "Running"
+                },
+                {
+                    "position": 18,
+                    "driver": "Leonardo Fornaroli",
+                    "team": "Cadillac",
+                    "total_time": 5596.313664342259,
+                    "best_lap": 96.48816662659067,
+                    "performance_score": 82.35208749011342,
+                    "incident": null,
+                    "status": "Running"
+                },
+                {
+                    "position": null,
+                    "driver": "Carlos Sainz",
+                    "team": "Williams",
+                    "total_time": 0,
                     "best_lap": 0,
-                    "performance_score": 0,
+                    "performance_score": 87.75994556683017,
                     "incident": "Crash",
                     "status": "DNF"
                 },
                 {
                     "position": null,
-                    "driver": "Isack Hadjar",
-                    "team": "Racing Bulls",
-                    "total_time": 999999,
+                    "driver": "Fernando Alonso",
+                    "team": "Aston Martin",
+                    "total_time": 0,
                     "best_lap": 0,
-                    "performance_score": 0,
-                    "incident": "Gearbox issue",
-                    "status": "DNF"
-                },
-                {
-                    "position": null,
-                    "driver": "Oliver Bearman",
-                    "team": "Haas",
-                    "total_time": 999999,
-                    "best_lap": 0,
-                    "performance_score": 0,
-                    "incident": "Engine failure",
+                    "performance_score": 93.97903956201937,
+                    "incident": "Crash",
                     "status": "DNF"
                 }
             ]
