@@ -1,35 +1,15 @@
 import json
 import os
+import sys
+import subprocess
 from simple_term_menu import TerminalMenu
 
-# ============================================================================
-# UI Helpers
-# ============================================================================
+# Add the project root to Python path
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
-def clear_screen():
-    """Clear the terminal screen."""
-    os.system('cls' if os.name == 'nt' else 'clear')
-
-def print_header(text):
-    """Print a stylish header."""
-    width = 60
-    print("\n" + "=" * width)
-    print(f"{text:^{width}}")
-    print("=" * width + "\n")
-
-def print_section(text):
-    """Print a section divider."""
-    print(f"\n{'─' * 60}")
-    print(f"  {text}")
-    print('─' * 60)
-
-def print_success(text):
-    """Print success message."""
-    print(f"\n✓ {text}")
-
-# ============================================================================
-# Main Program
-# ============================================================================
+from src.utils.ui import clear_screen, print_header, print_section, print_success
 
 clear_screen()
 print_header("🏎️  F1 MANAGER 2026  🏁")
@@ -144,14 +124,28 @@ save_file_path = os.path.join(os.path.dirname(__file__), '..', '..', 'assets', '
 if not os.path.exists(os.path.dirname(save_file_path)):
     os.makedirs(os.path.dirname(save_file_path))
 
-selected_drivers_data = [driver for driver in drivers_data if driver['name'] in [selected_driver1, selected_driver2]]
+selected_drivers_data = []
+for driver in drivers_data:
+    if driver['name'] in [selected_driver1, selected_driver2]:
+        # Create a copy of the driver data to avoid modifying the original
+        driver_copy = driver.copy()
+        driver_copy['team'] = selected_team
+        selected_drivers_data.append(driver_copy)
 
-# Set the team for each selected driver
-for driver in selected_drivers_data:
-    driver['team'] = selected_team
+# Create new save data structure
+save_data = {
+    "drivers": selected_drivers_data,
+    "races": []
+}
 
+# Ensure the save directory exists
+save_dir = os.path.dirname(save_file_path)
+if not os.path.exists(save_dir):
+    os.makedirs(save_dir)
+
+# Write the save data with proper formatting
 with open(save_file_path, 'w') as f:
-    json.dump(selected_drivers_data, f, indent=4)
+    json.dump(save_data, f, indent=4)
 
 # ============================================================================
 # Display Final Summary
@@ -163,4 +157,8 @@ print(f"  First Driver:   {selected_driver1}")
 print(f"  Second Driver:  {selected_driver2}")
 print("\n" + "─" * 60)
 print_success("Configuration saved successfully!")
-print("\n🏁 Good luck with your season!\n")
+
+# Launch the main game
+print("\nStarting game...")
+from src.game import main_menu
+main_menu()

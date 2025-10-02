@@ -15,10 +15,20 @@ def load_circuit_data(circuit_id: str) -> Dict[str, Any]:
     raise ValueError(f"Circuit '{circuit_id}' not found in circuits.json")
 
 def load_driver_data() -> Dict[str, Dict[str, Any]]:
-    """Load driver data from drivers.json"""
+    """Load driver data from both drivers.json and save.json"""
+    # Load F1 drivers
     drivers_file_path = os.path.join(os.path.dirname(__file__), '..', '..', 'assets', 'data', 'drivers.json')
     with open(drivers_file_path, 'r') as f:
         drivers_data = json.load(f)
+
+    # Load save data (your F2 drivers)
+    save_file_path = os.path.join(os.path.dirname(__file__), '..', '..', 'assets', 'data', 'save', 'save.json')
+    if os.path.exists(save_file_path):
+        with open(save_file_path, 'r') as f:
+            save_data = json.load(f)
+            if 'drivers' in save_data:
+                # Add your drivers to the drivers list
+                drivers_data.extend(save_data['drivers'])
     
     # Convert to dictionary with driver name as key
     return {driver['name']: driver for driver in drivers_data}
@@ -76,13 +86,19 @@ def calculate_lap_time(driver_performance: float, circuit: Dict[str, Any]) -> fl
     
     return lap_time
 
-def race_simulation(circuit_id: str, driver_names: List[str]) -> Dict[str, Dict[str, Any]]:
+def get_all_available_drivers() -> List[str]:
+    """Get list of all available driver names from both drivers.json and save.json"""
+    all_drivers = load_driver_data()
+    return list(all_drivers.keys())
+
+def race_simulation(circuit_id: str, driver_names: List[str] = None) -> Dict[str, Dict[str, Any]]:
     """
     Simulate an F1 race using circuit data and driver stats
     
     Args:
         circuit_id: ID of the circuit from circuits.json
-        driver_names: List of driver names to participate in the race
+        driver_names: List of driver names to participate in the race. 
+                     If None, all available drivers will be used.
     
     Returns:
         Dictionary with race results for each driver
@@ -91,11 +107,16 @@ def race_simulation(circuit_id: str, driver_names: List[str]) -> Dict[str, Dict[
     circuit = load_circuit_data(circuit_id)
     all_drivers = load_driver_data()
     
+    # If no specific drivers provided, use all available drivers
+    if driver_names is None:
+        driver_names = get_all_available_drivers()
+    
     print(f"🏁 Simulating race at {circuit['name']}")
     print(f"📍 Location: {circuit['location']}")
     print(f"🏎️  Circuit length: {circuit['length_km']} km")
     print(f"🔄 Number of laps: {circuit['num_laps']}")
     print(f"📝 Notes: {circuit['notes']}")
+    print(f"👥 Drivers participating: {len(driver_names)}")
     print("-" * 50)
     
     results = {}
@@ -116,7 +137,7 @@ def race_simulation(circuit_id: str, driver_names: List[str]) -> Dict[str, Dict[
         incident_chance = random.random()
         if incident_chance < 0.05:  # 5% chance of major incident
             total_race_time += random.uniform(20, 60)  # Pit stop penalty
-            incident = "Pit stop penalty"
+            incident = "Slow pitstop"
         elif incident_chance < 0.1:  # Additional 5% chance of minor incident
             total_race_time += random.uniform(5, 15)  # Minor delay
             incident = "Minor incident"
@@ -163,6 +184,10 @@ def race_simulation(circuit_id: str, driver_names: List[str]) -> Dict[str, Dict[
 
 # Example usage
 if __name__ == "__main__":
-    # Example race simulation
-    test_drivers = ["Max Verstappen", "Lewis Hamilton", "Charles Leclerc", "Lando Norris"]
-    race_results = race_simulation("saudi_arabia", test_drivers)
+    # Example race simulation using all available drivers
+    print("Running race simulation with all available drivers...")
+    race_results = race_simulation("saudi_arabia")
+    
+    # Alternative: race with specific drivers
+    # specific_drivers = ["Max Verstappen", "Lewis Hamilton", "Charles Leclerc", "Lando Norris"]
+    # race_results = race_simulation("saudi_arabia", specific_drivers)
