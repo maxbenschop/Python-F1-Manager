@@ -7,7 +7,6 @@ import termios
 from typing import Dict, List, Any, Tuple
 
 def load_circuit_data(circuit_id: str) -> Dict[str, Any]:
-    """Load circuit data from circuits.json"""
     circuits_file_path = os.path.join(os.path.dirname(__file__), '..', '..', 'assets', 'data', 'circuits.json')
     with open(circuits_file_path, 'r') as f:
         circuits_data = json.load(f)
@@ -18,7 +17,6 @@ def load_circuit_data(circuit_id: str) -> Dict[str, Any]:
     raise ValueError(f"Circuit '{circuit_id}' not found in circuits.json")
 
 def load_team_data() -> Dict[str, Dict[str, Any]]:
-    """Load team data from teams.json"""
     teams_file_path = os.path.join(os.path.dirname(__file__), '..', '..', 'assets', 'data', 'teams.json')
     with open(teams_file_path, 'r') as f:
         teams_data = json.load(f)
@@ -37,7 +35,6 @@ def load_team_data() -> Dict[str, Dict[str, Any]]:
     return teams_dict
 
 def load_driver_data() -> Dict[str, Dict[str, Any]]:
-    """Load driver data from both drivers.json and save.json"""
     # Load F1 drivers
     drivers_file_path = os.path.join(os.path.dirname(__file__), '..', '..', 'assets', 'data', 'drivers.json')
     with open(drivers_file_path, 'r') as f:
@@ -56,7 +53,6 @@ def load_driver_data() -> Dict[str, Dict[str, Any]]:
     return {driver['name']: driver for driver in drivers_data}
 
 def calculate_team_overall_score(team: Dict[str, Any]) -> float:
-    """Calculate team overall performance score (0-1 scale)"""
     return (
         team.get('aero', 0.90) * 0.20 +
         team.get('power', 0.90) * 0.18 +
@@ -70,7 +66,6 @@ def calculate_team_overall_score(team: Dict[str, Any]) -> float:
     )
 
 def calculate_driver_overall_score(driver: Dict[str, Any]) -> float:
-    """Calculate driver overall performance score (0-100 scale)"""
     return (
         driver.get('pace', 80) * 0.40 +
         driver.get('qualifying', 80) * 0.30 +
@@ -94,7 +89,6 @@ def get_track_overtaking_difficulty(circuit: Dict[str, Any]) -> float:
         return 0.7
 
 def apply_track_specific_modifiers(team_score: float, team: Dict[str, Any], circuit: Dict[str, Any]) -> float:
-    """Apply track-specific modifiers to team score"""
     circuit_name = circuit['name'].lower()
     notes = circuit.get('notes', '').lower()
 
@@ -111,7 +105,6 @@ def apply_track_specific_modifiers(team_score: float, team: Dict[str, Any], circ
     return team_score
 
 def simulate_qualifying(driver: Dict[str, Any], team: Dict[str, Any], circuit: Dict[str, Any]) -> float:
-    """Simulate qualifying lap time for a driver"""
     base_time = 90.0  # Arbitrary baseline in seconds
 
     driver_score = calculate_driver_overall_score(driver)
@@ -135,7 +128,6 @@ def simulate_qualifying(driver: Dict[str, Any], team: Dict[str, Any], circuit: D
     return quali_time
 
 def simulate_dnf(driver: Dict[str, Any], team: Dict[str, Any]) -> Tuple[bool, str]:
-    """Simulate if a driver has a DNF (Did Not Finish)"""
     dnf_chance = (1.0 - team.get('reliability', 0.95)) * 100
 
     # Rookies break cars more
@@ -150,12 +142,10 @@ def simulate_dnf(driver: Dict[str, Any], team: Dict[str, Any]) -> Tuple[bool, st
     return False, None
 
 def get_all_available_drivers() -> List[str]:
-    """Get list of all available driver names from both drivers.json and save.json"""
     all_drivers = load_driver_data()
     return list(all_drivers.keys())
 
 def get_key_press():
-    """Get a single key press from user"""
     fd = sys.stdin.fileno()
     old_settings = termios.tcgetattr(fd)
     try:
@@ -165,38 +155,57 @@ def get_key_press():
         termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
     return ch
 
+def calculate_pit_stop_time(team: Dict[str, Any]) -> float:
+    # Base pit stop time: 2.0 seconds (perfect stop)
+    # Range: ~1.8s (best teams) to ~3.0s (worst teams)
+    base_time = 2.0
+    pit_speed = team.get('pit_stop_speed', 0.90)
+
+    # Better pit_stop_speed = faster stops
+    # 0.97 speed -> ~1.8-2.2s
+    # 0.90 speed -> ~2.0-2.5s
+    # 0.84 speed -> ~2.3-3.0s
+    time_variance = (1.0 - pit_speed) * 5.0  # Scale the variance
+    pit_time = base_time + time_variance + random.uniform(-0.2, 0.4)
+
+    return max(1.8, pit_time)  # Minimum 1.8s (world record territory)
+
 def simulate_lap_events(race_state: List[Dict], lap_num: int, total_laps: int, overtaking_difficulty: float) -> List[str]:
-    """Simulate events that happen during a lap and return position changes"""
+    # Simulate events that happen during a lap and return position changes
     events = []
 
     # Calculate how many position changes should happen this lap
-    # More changes early in race, fewer later
-    lap_progress = lap_num / total_laps
-    max_changes = int(3 * (1 - lap_progress * 0.7))  # 3 changes early, ~1 late
+    # Overtakes should be very rare - only happen with significant performance differences
+    # Very few overtakes per lap - F1 races typically have 10-30 overtakes total
+    # With ~50-70 laps, that's about 0.2-0.6 overtakes per lap on average
+    overtake_chance_this_lap = 15  # 15% chance of any overtake happening this lap (reduced from 25%)
 
-    # Simulate overtakes/position changes
-    num_changes = random.randint(0, max_changes)
+    if random.uniform(0, 100) < overtake_chance_this_lap:
+        # Only 1 overtake attempt per lap maximum
+        if len(race_state) >= 2:
+            # Pick a random position to have a battle (not the leader)
+            pos_idx = random.randint(1, len(race_state) - 1)
 
-    for _ in range(num_changes):
-        # Pick a random position to have a battle (not the leader)
-        if len(race_state) < 2:
-            break
+            # Check if driver behind can overtake (based on performance and track)
+            driver_behind = race_state[pos_idx]
+            driver_ahead = race_state[pos_idx - 1]
 
-        pos_idx = random.randint(1, len(race_state) - 1)
+            # Calculate overtake probability - needs significant performance difference
+            perf_diff = driver_behind['race_performance'] - driver_ahead['race_performance']
+            overtake_chance = (perf_diff / 10) * overtaking_difficulty * 100
+            overtake_chance = max(0, min(20, overtake_chance))  # Clamp between 0-20% (reduced from 0-30%)
 
-        # Check if driver behind can overtake (based on performance and track)
-        driver_behind = race_state[pos_idx]
-        driver_ahead = race_state[pos_idx - 1]
+            # Only overtake if there's a BIG performance advantage
+            if perf_diff > 5 and random.uniform(0, 100) < overtake_chance:  # Increased from 2 to 5
+                # When overtaking, the faster driver gains time on the slower one
+                # Adjust cumulative times slightly to reflect the overtake
+                time_gain = random.uniform(0.3, 1.0)  # Overtaking driver gains 0.3-1.0s
+                if 'cumulative_time' in driver_behind:
+                    driver_behind['cumulative_time'] -= time_gain
+                if 'cumulative_time' in driver_ahead:
+                    driver_ahead['cumulative_time'] += time_gain * 0.5  # Driver ahead loses some time
 
-        # Calculate overtake probability
-        perf_diff = driver_behind['race_performance'] - driver_ahead['race_performance']
-        overtake_chance = (perf_diff / 10) * overtaking_difficulty * 100
-        overtake_chance = max(5, min(40, overtake_chance))  # Clamp between 5-40%
-
-        if random.uniform(0, 100) < overtake_chance:
-            # Swap positions
-            race_state[pos_idx], race_state[pos_idx - 1] = race_state[pos_idx - 1], race_state[pos_idx]
-            events.append(f"  🏎️  {driver_behind['driver_name']} overtakes {driver_ahead['driver_name']} for P{pos_idx}")
+                events.append(f"  🏎️  {driver_behind['driver_name']} overtakes {driver_ahead['driver_name']} for P{pos_idx}")
 
     # Random incidents during the lap
     if random.uniform(0, 100) < 8:  # 8% chance per lap
@@ -210,12 +219,12 @@ def simulate_lap_events(race_state: List[Dict], lap_num: int, total_laps: int, o
             "runs wide and loses a position"
         ])
 
-        if incident_type == "runs wide and loses a position" and victim_idx < len(race_state) - 1:
-            # Swap with driver behind
-            race_state[victim_idx], race_state[victim_idx + 1] = race_state[victim_idx + 1], race_state[victim_idx]
-            events.append(f"  ⚠️  {victim['driver_name']} {incident_type}")
-        else:
-            events.append(f"  ⚠️  {victim['driver_name']} {incident_type}")
+        # Add time penalty for incidents
+        time_loss = random.uniform(0.5, 2.0)
+        if 'cumulative_time' in victim:
+            victim['cumulative_time'] += time_loss
+
+        events.append(f"  ⚠️  {victim['driver_name']} {incident_type}")
 
     # MANDATORY PIT STOPS - Check if drivers need to pit
     pit_window_start = int(total_laps * 0.25)  # 25% through race
@@ -239,15 +248,17 @@ def simulate_lap_events(race_state: List[Dict], lap_num: int, total_laps: int, o
                     driver_state['has_pitted'] = True
                     current_pos = race_state.index(driver_state) + 1
 
-                    # Pit stop drops driver back ~3-6 positions
-                    positions_lost = random.randint(3, 6)
-                    new_pos_idx = min(race_state.index(driver_state) + positions_lost, len(race_state) - 1)
+                    # Calculate pit stop time based on team performance
+                    pit_time = calculate_pit_stop_time(driver_state['team'])
 
-                    # Move driver back in order
-                    race_state.remove(driver_state)
-                    race_state.insert(new_pos_idx, driver_state)
+                    # Add pit lane time loss (entry/exit + stop time)
+                    # Typical pit lane loss is 20-25 seconds total
+                    total_pit_loss = 20.0 + pit_time
 
-                    events.append(f"  🔧 {driver_state['driver_name']} pits from P{current_pos}")
+                    # Store the time penalty
+                    driver_state['pit_time_loss'] = driver_state.get('pit_time_loss', 0) + total_pit_loss
+
+                    events.append(f"  🔧 {driver_state['driver_name']} pits from P{current_pos} ({pit_time:.1f}s stop)")
 
     # Force pit stops for anyone who hasn't pitted by lap 75% + 1
     if lap_num == pit_window_end + 1:
@@ -255,13 +266,13 @@ def simulate_lap_events(race_state: List[Dict], lap_num: int, total_laps: int, o
             if not driver_state.get('has_pitted', False):
                 driver_state['has_pitted'] = True
                 current_pos = race_state.index(driver_state) + 1
-                events.append(f"  🔧 {driver_state['driver_name']} makes MANDATORY pit stop from P{current_pos}")
 
-                # Emergency pit - bigger drop
-                positions_lost = random.randint(5, 8)
-                new_pos_idx = min(race_state.index(driver_state) + positions_lost, len(race_state) - 1)
-                race_state.remove(driver_state)
-                race_state.insert(new_pos_idx, driver_state)
+                # Emergency pit - slower stop due to rushing
+                pit_time = calculate_pit_stop_time(driver_state['team']) + 0.5
+                total_pit_loss = 20.0 + pit_time
+                driver_state['pit_time_loss'] = driver_state.get('pit_time_loss', 0) + total_pit_loss
+
+                events.append(f"  🔧 {driver_state['driver_name']} makes MANDATORY pit stop from P{current_pos} ({pit_time:.1f}s)")
 
     return events
 
@@ -317,7 +328,8 @@ def race_simulation(circuit_id: str, driver_names: List[str] = None) -> Dict[str
                 'weight': 0.85,
                 'fuel_efficiency': 0.85,
                 'wear': 0.85,
-                'tyre_wear': 0.85
+                'tyre_wear': 0.85,
+                'pit_stop_speed': 0.85
             }
 
         # Calculate qualifying time
@@ -375,7 +387,10 @@ def race_simulation(circuit_id: str, driver_names: List[str] = None) -> Dict[str
             'incident': None,
             'race_performance': race_performance,
             'total_time': 0,
-            'has_pitted': False  # Track mandatory pit stop
+            'has_pitted': False,  # Track mandatory pit stop
+            'pit_time_loss': 0,  # Track time lost in pits
+            'cumulative_time': 0,  # Track cumulative lap times
+            'total_race_time': 0  # Track total race time including pits
         })
 
     # LAP-BY-LAP SIMULATION
@@ -385,6 +400,9 @@ def race_simulation(circuit_id: str, driver_names: List[str] = None) -> Dict[str
     skip_to_end = False
     dnf_drivers = []
     safety_car_lap = random.randint(int(total_laps * 0.3), int(total_laps * 0.7)) if random.uniform(0, 100) < 30 else None
+
+    # Average lap time for time calculation (in seconds)
+    average_lap_time = 95.0  # ~1:35 per lap
 
     for lap_num in range(1, total_laps + 1):
         if skip_to_end:
@@ -418,20 +436,73 @@ def race_simulation(circuit_id: str, driver_names: List[str] = None) -> Dict[str
         # Sort by current position for lap events
         running_drivers.sort(key=lambda x: x['current_position'])
 
-        # Simulate lap events
+        # Calculate cumulative race time for each driver FIRST
+        for driver_state in running_drivers:
+            if lap_num == 1:
+                # Lap 1: Start everyone with base lap time, maintaining grid order
+                # Give each driver a lap time based on grid position (leader gets best time)
+                lap_time = 95.0 + (driver_state['grid_position'] - 1) * 0.5  # 0.5s gap per grid position (bigger gaps)
+                lap_time += random.uniform(-0.02, 0.02)  # Very tiny variation
+            else:
+                # Normal laps: Performance matters - bigger time differences
+                lap_time = 95.0 - (driver_state['race_performance'] - 85) * 0.35  # Increased from 0.15 to 0.35 for bigger gaps
+                lap_time += random.uniform(-0.15, 0.15)  # Small random variation
+
+            # Add to cumulative time (pit losses are already tracked separately)
+            driver_state['cumulative_time'] += lap_time
+
+        # NOW simulate lap events (this may modify cumulative_time and pit_time_loss)
         lap_events = simulate_lap_events(running_drivers, lap_num, total_laps, overtaking_difficulty)
+
+        # Store previous positions before re-sorting
+        previous_positions = {driver['driver_name']: driver['current_position'] for driver in running_drivers}
+
+        # Re-sort drivers by cumulative time + pit time losses
+        for driver_state in running_drivers:
+            driver_state['total_race_time'] = driver_state['cumulative_time'] + driver_state['pit_time_loss']
+
+        running_drivers.sort(key=lambda x: x['total_race_time'])
 
         # Update current positions based on sorted order
         for idx, driver_state in enumerate(running_drivers, 1):
             driver_state['current_position'] = idx
 
-        # Display current standings
-        print("\nCurrent Positions:")
-        for idx, driver_state in enumerate(running_drivers[:10], 1):  # Show top 10
-            print(f"  P{idx:2d}. {driver_state['driver_name']:<20} [{driver_state['team']['name']:<12}]")
+        # Detect ALL position changes that weren't already reported
+        position_changes = []
+        for driver_state in running_drivers:
+            old_pos = previous_positions[driver_state['driver_name']]
+            new_pos = driver_state['current_position']
 
-        if len(running_drivers) > 10:
-            print(f"  ... and {len(running_drivers) - 10} more")
+            # Report any position change
+            if old_pos != new_pos:
+                # Check if this change was already reported in lap_events
+                driver_name = driver_state['driver_name']
+                already_reported = any(driver_name in event for event in lap_events)
+                if not already_reported:
+                    if new_pos < old_pos:
+                        position_changes.append(f"  📈 {driver_name} moves up to P{new_pos}")
+                    else:
+                        position_changes.append(f"  📉 {driver_name} drops to P{new_pos}")
+
+        # Add position changes to lap events
+        lap_events.extend(position_changes)
+
+        # Display current standings with cumulative gaps to leader
+        print("\nCurrent Positions:")
+        leader_time = running_drivers[0]['total_race_time']
+
+        for idx, driver_state in enumerate(running_drivers, 1):  # Show all drivers
+            if idx == 1:
+                gap_str = ""
+            else:
+                gap_to_leader = driver_state['total_race_time'] - leader_time
+                if gap_to_leader < 60:
+                    gap_str = f" +{gap_to_leader:.1f}s"
+                else:
+                    minutes = int(gap_to_leader // 60)
+                    seconds = gap_to_leader % 60
+                    gap_str = f" +{minutes}:{seconds:04.1f}"
+            print(f"  P{idx:2d}. {driver_state['driver_name']:<20} [{driver_state['team']['name']:<12}]{gap_str}")
 
         # Display lap events
         if lap_events:
@@ -463,46 +534,14 @@ def race_simulation(circuit_id: str, driver_names: List[str] = None) -> Dict[str
         for position, driver_state in enumerate(running_drivers, 1):
             driver_state['final_position'] = position
 
-    # Phase 3: Calculate realistic time gaps
-    winner_time = 5400.0  # Base race time (~90 minutes)
-
+    # Phase 3: Use cumulative race times calculated during the race
     # Sort running drivers by final position
     running_drivers = [r for r in race_results if r['status'] == 'Running']
     running_drivers.sort(key=lambda x: x['final_position'])
 
+    # The total_race_time already includes cumulative_time + pit_time_loss from the race simulation
     for result in running_drivers:
-        if result['final_position'] == 1:
-            result['total_time'] = winner_time
-        else:
-            prev_result = running_drivers[result['final_position'] - 2]
-
-            # Calculate gap based on position with more realistic spreads
-            if result['final_position'] == 2:
-                # P2 usually 0.2s to 20s behind (close battles or clear wins)
-                if random.uniform(0, 100) < 30:  # 30% chance of close battle
-                    gap = random.uniform(0.2, 5.0)
-                else:
-                    gap = random.uniform(5.0, 20.0)
-            elif result['final_position'] == 3:
-                # P3 can be close to P2 or further back
-                gap = random.uniform(0.5, 15.0)
-            elif result['final_position'] <= 6:
-                # Top 6 usually within reasonable gaps
-                gap = random.uniform(2.0, 20.0)
-            elif result['final_position'] <= 10:
-                # Points positions
-                gap = random.uniform(3.0, 15.0)
-            else:
-                # Back markers - bigger gaps
-                gap = random.uniform(5.0, 25.0)
-
-            result['total_time'] = prev_result['total_time'] + gap
-
-            # Occasionally create lapped cars (gap > 90s means 1 lap down)
-            if result['final_position'] > 12 and random.uniform(0, 100) < 20:
-                # Some backmarkers get lapped
-                additional_gap = random.uniform(20, 50)
-                result['total_time'] += additional_gap
+        result['total_time'] = result['total_race_time']
 
     # Combine all results
     all_results = running_drivers + dnf_drivers

@@ -303,10 +303,14 @@ def view_race_history(team, driver1, driver2):
     print("─" * 60)
     
     for result in selected_race["results"]:
+        # Skip drivers with no position (DNF)
+        if result["position"] is None:
+            continue
+
         # Highlight the user's drivers
         is_team_driver = result["driver"] in [driver1, driver2]
         driver_name = f"➤ {result['driver']}" if is_team_driver else f"  {result['driver']}"
-        
+
         # Format the time gap
         if result["position"] == 1:
             time_display = f"{result['total_time']:.3f}s"
@@ -318,7 +322,7 @@ def view_race_history(team, driver1, driver2):
                 minutes = int(gap // 60)
                 seconds = gap % 60
                 time_display = f"+{minutes}:{seconds:06.3f}"
-        
+
         print(f"{result['position']:2d}. {driver_name:<25} {result['team']:<15} {time_display}")
         if result.get("incident"):
             print(f"    ⚠️  {result['incident']}")
