@@ -6,6 +6,8 @@ import tty
 import termios
 from typing import Dict, List, Any, Tuple
 
+from .pit_strategy import apply_pit_strategy
+
 # Load circuit data by ID from JSON file
 def load_circuit_data(circuit_id: str) -> Dict[str, Any]:
     circuits_file_path = os.path.join(os.path.dirname(__file__), '..', '..', 'assets', 'data', 'circuits.json')
@@ -154,16 +156,6 @@ def get_key_press():
         termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
     return ch
 
-def calculate_pit_stop_time(team: Dict[str, Any]) -> float:
-    # Calculate pit stop time based on team performance (1.8-3.0 seconds)
-    base_time = 2.0
-    pit_speed = team.get('pit_stop_speed', 0.90)
-
-    time_variance = (1.0 - pit_speed) * 5.0
-    pit_time = base_time + time_variance + random.uniform(-0.2, 0.4)
-
-    return max(1.8, pit_time)
-
 def simulate_lap_events(race_state: List[Dict], lap_num: int, total_laps: int, overtaking_difficulty: float) -> List[str]:
     # Simulate overtakes, incidents, and pit stops during the lap
     events = []
@@ -211,44 +203,7 @@ def simulate_lap_events(race_state: List[Dict], lap_num: int, total_laps: int, o
 
         events.append(f"  ⚠️  {victim['driver_name']} {incident_type}")
 
-    # Mandatory pit stops (drivers must pit between 25% and 75% of race)
-    pit_window_start = int(total_laps * 0.25)
-    pit_window_end = int(total_laps * 0.75)
-
-    if pit_window_start <= lap_num <= pit_window_end:
-        for driver_state in race_state:
-            if not driver_state.get('has_pitted', False):
-                # Spread pit stops across the window
-                laps_in_window = pit_window_end - pit_window_start
-                pit_probability = 100 / laps_in_window
-
-                # Increase urgency if near end of window
-                laps_remaining = pit_window_end - lap_num
-                if laps_remaining < 5:
-                    pit_probability *= 2
-
-                if random.uniform(0, 100) < pit_probability:
-                    driver_state['has_pitted'] = True
-                    current_pos = race_state.index(driver_state) + 1
-
-                    pit_time = calculate_pit_stop_time(driver_state['team'])
-                    total_pit_loss = 20.0 + pit_time
-                    driver_state['pit_time_loss'] = driver_state.get('pit_time_loss', 0) + total_pit_loss
-
-                    events.append(f"  🔧 {driver_state['driver_name']} pits from P{current_pos} ({pit_time:.1f}s stop)")
-
-    # Force pit stops for any drivers who haven't pitted yet
-    if lap_num == pit_window_end + 1:
-        for driver_state in race_state:
-            if not driver_state.get('has_pitted', False):
-                driver_state['has_pitted'] = True
-                current_pos = race_state.index(driver_state) + 1
-
-                pit_time = calculate_pit_stop_time(driver_state['team']) + 0.5
-                total_pit_loss = 20.0 + pit_time
-                driver_state['pit_time_loss'] = driver_state.get('pit_time_loss', 0) + total_pit_loss
-
-                events.append(f"  🔧 {driver_state['driver_name']} makes MANDATORY pit stop from P{current_pos} ({pit_time:.1f}s)")
+    events.extend(apply_pit_strategy(race_state, lap_num, total_laps))
 
     return events
 
