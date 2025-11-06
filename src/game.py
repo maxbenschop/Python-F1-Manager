@@ -209,7 +209,10 @@ def start_race(team, driver1, driver2):
     print_section(f"RACE AT {selected_circuit['name'].upper()}")
 
     # Run race simulation
-    race_results = race_simulation(selected_circuit['id'])
+    race_results = race_simulation(
+        selected_circuit['id'],
+        controlled_drivers=[driver1, driver2],
+    )
 
     if not race_results:
         print("\n❌ Error occurred during race simulation.")
@@ -352,4 +355,3 @@ def exit_game():
     print_header("🏎️  F1 MANAGER 2026  🏁")
     print("\nThank you for playing F1 Manager 2026! Goodbye!\n")
     exit()
-

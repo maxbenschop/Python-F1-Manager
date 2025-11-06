@@ -4,9 +4,11 @@ import os
 import sys
 import tty
 import termios
-from typing import Dict, List, Any, Tuple
+from typing import Dict, List, Any, Tuple, Optional, Set
 
-from .pit_strategy import apply_pit_strategy
+from .pit_strategy import apply_pit_strategy, get_strategy_options_for_circuit, create_tyre_state
+from .strategy_models import RaceStrategy, StintPlan, TyreState
+from .tyre_model import TYRE_MODEL
 
 # Load circuit data by ID from JSON file
 def load_circuit_data(circuit_id: str) -> Dict[str, Any]:
@@ -54,6 +56,181 @@ def load_driver_data() -> Dict[str, Dict[str, Any]]:
                 drivers_data.extend(save_data['drivers'])
 
     return {driver['name']: driver for driver in drivers_data}
+
+
+def format_stint_summary(stint: StintPlan, total_laps: int) -> str:
+    """
+    Produce a user-facing summary string for a strategy stint.
+    """
+    target_lap = max(1, int(round(stint.target_lap_fraction * total_laps)))
+    window_start = max(1, int(round(stint.pit_window_fraction[0] * total_laps)))
+    window_end = max(window_start, int(round(stint.pit_window_fraction[1] * total_laps)))
+    return (
+        f"Lap {target_lap} target | window L{window_start}–L{window_end} | compound: {stint.compound.title()}"
+    )
+
+
+def select_strategy_for_race(
+    circuit: Dict[str, Any],
+    auto_choice: Optional[str] = None,
+    auto_mode: bool = False,
+) -> Tuple[Optional[RaceStrategy], Dict[str, float]]:
+    """
+    Present available circuit presets and capture the user's strategy choice.
+    """
+    total_laps = circuit.get('num_laps', 0) or 0
+    default_strategy, alternate_strategy, profile = get_strategy_options_for_circuit(circuit)
+
+    if not default_strategy and not alternate_strategy:
+        return None, {}
+
+    options: Dict[str, Tuple[Optional[RaceStrategy], Dict[str, float]]] = {}
+
+    if default_strategy:
+        default_preset = profile.default if profile else None
+        options['d'] = (
+            default_strategy,
+            dict(default_preset.stint_offsets) if default_preset else {},
+        )
+
+    if alternate_strategy:
+        alternate_preset = profile.alternate if profile else None
+        options['a'] = (
+            alternate_strategy,
+            dict(alternate_preset.stint_offsets) if alternate_preset else {},
+        )
+
+    if auto_mode:
+        if auto_choice and auto_choice.lower() in options:
+            selected_strategy, offsets = options[auto_choice.lower()]
+            return selected_strategy, offsets
+        selected = options.get('d')
+        if selected:
+            return selected[0], selected[1]
+        return default_strategy, {}
+
+    print("\n🧠 Strategy presets available for this circuit:")
+
+    if default_strategy:
+        default_preset = profile.default if profile else None
+        preset_note = f" ({default_preset.notes})" if default_preset and default_preset.notes else ""
+        print(f"\n[D] {default_strategy.name} — {default_strategy.description}{preset_note}")
+        for idx, stint in enumerate(default_strategy.stints, 1):
+            print(f"    Stint {idx}: {format_stint_summary(stint, total_laps)}")
+
+    if alternate_strategy:
+        alternate_preset = profile.alternate if profile else None
+        preset_note = f" ({alternate_preset.notes})" if alternate_preset and alternate_preset.notes else ""
+        print(f"\n[A] {alternate_strategy.name} — {alternate_strategy.description}{preset_note}")
+        for idx, stint in enumerate(alternate_strategy.stints, 1):
+            print(f"    Stint {idx}: {format_stint_summary(stint, total_laps)}")
+        options['a'] = (
+            alternate_strategy,
+            dict(alternate_preset.stint_offsets) if alternate_preset else {},
+        )
+
+    print("\n[Enter] Keep default selection (if available)")
+
+    while True:
+        choice = input("Choose strategy for this race (D/A or Enter to skip): ").strip().lower()
+        if not choice:
+            selected = options.get('d')
+            if selected:
+                return selected[0], selected[1]
+            return default_strategy, {}
+        if choice in options:
+            selected_strategy, offsets = options[choice]
+            return selected_strategy, offsets
+        print("Invalid selection, please choose again.")
+
+
+def determine_initial_compound(strategy: Optional[RaceStrategy]) -> str:
+    if strategy and strategy.stints:
+        return strategy.stints[0].compound.lower()
+    return "medium"
+
+
+def tyre_state_summary(tyre_state: TyreState) -> str:
+    wear_percentage = tyre_state.wear * 100
+    return f"{tyre_state.compound.title()} ({wear_percentage:.0f}% wear)"
+
+
+def manage_strategy_menu(
+    race_state: List[Dict[str, Any]],
+    lap_num: int,
+    total_laps: int,
+    controlled_driver_names: Optional[Set[str]] = None,
+) -> None:
+    running = [
+        driver for driver in race_state
+        if driver['status'] == 'Running'
+        and (not controlled_driver_names or driver['driver_name'] in controlled_driver_names)
+    ]
+    running.sort(key=lambda x: x['current_position'])
+
+    if not running:
+        print("\nNo controllable drivers available to manage right now.")
+        return
+
+    print(f"\n=== Strategy Management (Lap {lap_num}/{total_laps}) ===")
+    for idx, driver in enumerate(running, 1):
+        tyre_state = driver.get('tyre_state')
+        tyre_info = tyre_state_summary(tyre_state) if isinstance(tyre_state, TyreState) else "No tyre data"
+        print(
+            f"{idx:2d}. {driver['driver_name']:<20} | Pos P{driver['current_position']:2d} | "
+            f"Stops: {driver.get('pit_stops', 0):d} | {tyre_info}"
+        )
+
+    selection = input("\nSelect driver number to adjust (Enter to cancel): ").strip()
+    if not selection:
+        return
+
+    try:
+        driver_idx = int(selection)
+    except ValueError:
+        print("Invalid selection.")
+        return
+
+    if driver_idx < 1 or driver_idx > len(running):
+        print("Driver number out of range.")
+        return
+
+    driver_state = running[driver_idx - 1]
+    print(
+        "\nOptions:\n"
+        " 1) Pit this lap\n"
+        " 2) Delay next pit stop\n"
+        " 3) Change next compound\n"
+        " 4) Cancel\n"
+    )
+
+    option = input("Choose action: ").strip()
+    if option == '1':
+        driver_state['force_pit_on_lap'] = lap_num + 1
+        driver_state['defer_pit_laps'] = 0
+        print(f"Marked {driver_state['driver_name']} to pit on lap {lap_num + 1}.")
+    elif option == '2':
+        delay_raw = input("Delay by how many laps? (1-5): ").strip()
+        try:
+            delay = max(1, min(5, int(delay_raw)))
+        except ValueError:
+            print("Invalid delay value.")
+            return
+        driver_state['defer_pit_laps'] = delay
+        driver_state['force_pit_on_lap'] = None
+        print(f"Delaying {driver_state['driver_name']}'s next stop by {delay} laps.")
+    elif option == '3':
+        compound = input("Enter next compound (soft/medium/hard): ").strip().lower()
+        if not compound:
+            print("No compound entered.")
+            return
+        if TYRE_MODEL.get_compound(compound) is None:
+            print("Unknown compound; keeping current plan.")
+            return
+        driver_state['next_compound_override'] = compound
+        print(f"{driver_state['driver_name']} will switch to {compound.title()} on the next stop.")
+    else:
+        print("Cancelled.")
 
 # Calculate weighted team performance score from car stats
 def calculate_team_overall_score(team: Dict[str, Any]) -> float:
@@ -156,7 +333,13 @@ def get_key_press():
         termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
     return ch
 
-def simulate_lap_events(race_state: List[Dict], lap_num: int, total_laps: int, overtaking_difficulty: float) -> List[str]:
+def simulate_lap_events(
+    race_state: List[Dict],
+    lap_num: int,
+    total_laps: int,
+    overtaking_difficulty: float,
+    strategy_plan: Optional[RaceStrategy],
+) -> List[str]:
     # Simulate overtakes, incidents, and pit stops during the lap
     events = []
 
@@ -203,17 +386,41 @@ def simulate_lap_events(race_state: List[Dict], lap_num: int, total_laps: int, o
 
         events.append(f"  ⚠️  {victim['driver_name']} {incident_type}")
 
-    events.extend(apply_pit_strategy(race_state, lap_num, total_laps))
+    events.extend(apply_pit_strategy(race_state, lap_num, total_laps, strategy_plan))
+
+    for driver_state in race_state:
+        tyre_state = driver_state.get('tyre_state')
+        if not isinstance(tyre_state, TyreState):
+            continue
+        config = driver_state.get('strategy_config', {}) or {}
+        warning_threshold = float(config.get('wear_threshold', 0.8)) + 0.05
+        if tyre_state.wear >= warning_threshold:
+            events.append(
+                f"  🔴 {driver_state['driver_name']} struggling on worn {tyre_state.compound.title()} tyres"
+            )
 
     return events
 
-def race_simulation(circuit_id: str, driver_names: List[str] = None) -> Dict[str, Dict[str, Any]]:
+def race_simulation(
+    circuit_id: str,
+    driver_names: List[str] = None,
+    *,
+    auto_mode: bool = False,
+    strategy_choice: Optional[str] = None,
+    seed: Optional[int] = None,
+    controlled_drivers: Optional[List[str]] = None,
+) -> Dict[str, Dict[str, Any]]:
     # Main race simulation function - runs qualifying and race, returns results
 
     # Load circuit, drivers, and teams data
     circuit = load_circuit_data(circuit_id)
     all_drivers = load_driver_data()
     all_teams = load_team_data()
+
+    if seed is not None:
+        random.seed(seed)
+
+    controlled_driver_set: Set[str] = set(controlled_drivers or [])
 
     # Use all available drivers if none specified
     if driver_names is None:
@@ -226,6 +433,16 @@ def race_simulation(circuit_id: str, driver_names: List[str] = None) -> Dict[str
     print(f"📝 Notes: {circuit['notes']}")
     print(f"👥 Drivers participating: {len(driver_names)}")
     print("-" * 60)
+
+    selected_strategy, strategy_offsets = select_strategy_for_race(
+        circuit,
+        auto_choice=strategy_choice,
+        auto_mode=auto_mode,
+    )
+    if selected_strategy and not auto_mode:
+        print(f"\n✅ Strategy selected: {selected_strategy.name}")
+    elif not selected_strategy and not auto_mode:
+        print("\n⚙️  No strategy preset available; using generic pit logic.")
 
     # PHASE 1: Run qualifying
     qualifying_results = []
@@ -296,6 +513,7 @@ def race_simulation(circuit_id: str, driver_names: List[str] = None) -> Dict[str
 
         race_performance += random.uniform(-3, 3)
 
+        initial_compound = determine_initial_compound(selected_strategy)
         race_results.append({
             'driver_name': driver_name,
             'driver': driver,
@@ -307,21 +525,33 @@ def race_simulation(circuit_id: str, driver_names: List[str] = None) -> Dict[str
             'incident': None,
             'race_performance': race_performance,
             'total_time': 0,
-            'has_pitted': False,
             'pit_time_loss': 0,
             'cumulative_time': 0,
-            'total_race_time': 0
+            'total_race_time': 0,
+            'strategy_plan': selected_strategy,
+            'strategy_stint_index': 0,
+            'tyre_state': create_tyre_state(initial_compound),
+            'current_compound': initial_compound,
+            'strategy_config': dict(strategy_offsets),
+            'pit_stops': 0,
+            'force_pit_on_lap': None,
+            'defer_pit_laps': 0,
+            'next_compound_override': None,
+            'last_pit_lap': 0,
+            'is_controlled': driver_name in controlled_driver_set,
         })
 
     # PHASE 3: Lap-by-lap simulation
     print(f"\nPress ENTER for next lap, or 'S' to skip to results\n")
-    input("Press ENTER to start the race...")
+    if not auto_mode:
+        input("Press ENTER to start the race...")
 
     skip_to_end = False
     dnf_drivers = []
     safety_car_lap = random.randint(int(total_laps * 0.3), int(total_laps * 0.7)) if random.uniform(0, 100) < 30 else None
 
     average_lap_time = 95.0
+    stress_profile = circuit.get('tyre_stress_profile', 'medium')
 
     for lap_num in range(1, total_laps + 1):
         if skip_to_end:
@@ -349,6 +579,13 @@ def race_simulation(circuit_id: str, driver_names: List[str] = None) -> Dict[str
                     dnf_drivers.append(driver_state)
                     print(f"\n❌ {driver_state['driver_name']} retires - {dnf_reason}")
 
+            tyre_state = driver_state.get('tyre_state')
+            if isinstance(tyre_state, TyreState) and TYRE_MODEL.check_random_puncture(tyre_state):
+                driver_state['status'] = 'DNF'
+                driver_state['incident'] = 'Tyre failure'
+                dnf_drivers.append(driver_state)
+                print(f"\n❌ {driver_state['driver_name']} retires - Tyre failure")
+
         # Update running drivers list after DNFs
         running_drivers = [r for r in race_results if r['status'] == 'Running']
         running_drivers.sort(key=lambda x: x['current_position'])
@@ -364,10 +601,21 @@ def race_simulation(circuit_id: str, driver_names: List[str] = None) -> Dict[str
                 lap_time = 95.0 - (driver_state['race_performance'] - 85) * 0.35
                 lap_time += random.uniform(-0.15, 0.15)
 
+            tyre_state = driver_state.get('tyre_state')
+            if isinstance(tyre_state, TyreState):
+                _, tyre_penalty = TYRE_MODEL.update_wear_and_penalty(tyre_state, stress_profile)
+                lap_time += tyre_penalty
+
             driver_state['cumulative_time'] += lap_time
 
         # Simulate lap events (overtakes, incidents, pit stops)
-        lap_events = simulate_lap_events(running_drivers, lap_num, total_laps, overtaking_difficulty)
+        lap_events = simulate_lap_events(
+            running_drivers,
+            lap_num,
+            total_laps,
+            overtaking_difficulty,
+            selected_strategy,
+        )
 
         # Store current positions before sorting
         previous_positions = {driver['driver_name']: driver['current_position'] for driver in running_drivers}
@@ -416,7 +664,11 @@ def race_simulation(circuit_id: str, driver_names: List[str] = None) -> Dict[str
                     minutes = int(gap_to_leader // 60)
                     seconds = gap_to_leader % 60
                     gap_str = f" +{minutes}:{seconds:04.1f}"
-            print(f"  P{idx:2d}. {driver_state['driver_name']:<20} [{driver_state['team']['name']:<12}]{gap_str}")
+            tyre_state = driver_state.get('tyre_state')
+            tyre_info = ""
+            if isinstance(tyre_state, TyreState):
+                tyre_info = f" | {tyre_state_summary(tyre_state)}"
+            print(f"  P{idx:2d}. {driver_state['driver_name']:<20} [{driver_state['team']['name']:<12}]{gap_str}{tyre_info}")
 
         # Display lap events
         if lap_events:
@@ -427,12 +679,19 @@ def race_simulation(circuit_id: str, driver_names: List[str] = None) -> Dict[str
             print("\n  No significant events this lap")
 
         # Wait for user input
-        if lap_num < total_laps:
-            print(f"\n[ENTER = Next lap | S = Skip to results]")
-            key = get_key_press()
-            if key.lower() == 's':
-                skip_to_end = True
-                print("\n⏩ Skipping to final results...")
+        if lap_num < total_laps and not auto_mode:
+            print(f"\n[ENTER = Next lap | S = Skip to results | P = Strategy menu]")
+            while True:
+                key = get_key_press()
+                if key.lower() == 's':
+                    skip_to_end = True
+                    print("\n⏩ Skipping to final results...")
+                    break
+                if key.lower() == 'p':
+                    manage_strategy_menu(race_results, lap_num, total_laps, controlled_driver_set or None)
+                    print("\n[ENTER = Next lap | S = Skip to results | P = Strategy menu]")
+                    continue
+                break
 
     # Finalize positions
     if skip_to_end:
@@ -478,7 +737,11 @@ def race_simulation(circuit_id: str, driver_names: List[str] = None) -> Dict[str
                 gap = f"+{minutes}:{seconds:06.3f}"
 
         incident_str = f" ⚠️  {result['incident']}" if result['incident'] else ""
-        print(f"P{position:2d}. {driver_name:<20} [{team_name:<12}] {gap:<12}{incident_str}")
+        tyre_state = result.get('tyre_state')
+        tyre_info = ""
+        if isinstance(tyre_state, TyreState):
+            tyre_info = f" | {tyre_state_summary(tyre_state)}"
+        print(f"P{position:2d}. {driver_name:<20} [{team_name:<12}] {gap:<12}{incident_str}{tyre_info}")
 
     # Display DNFs
     if dnf_drivers:
@@ -502,6 +765,28 @@ def race_simulation(circuit_id: str, driver_names: List[str] = None) -> Dict[str
         }
 
     return results_dict
+
+
+def simulate_race_auto(
+    circuit_id: str,
+    driver_names: List[str] = None,
+    *,
+    strategy_choice: Optional[str] = None,
+    seed: Optional[int] = None,
+    controlled_drivers: Optional[List[str]] = None,
+) -> Dict[str, Dict[str, Any]]:
+    """
+    Convenience wrapper for automated simulations used in tests or analysis.
+    """
+    return race_simulation(
+        circuit_id,
+        driver_names,
+        auto_mode=True,
+        strategy_choice=strategy_choice,
+        seed=seed,
+        controlled_drivers=controlled_drivers,
+    )
+
 
 # Example usage
 if __name__ == "__main__":

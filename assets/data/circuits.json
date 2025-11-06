@@ -8,13 +8,32 @@
     "num_laps": 58,
     "lap_record_time": null,
     "lap_record_holder": null,
-    "pit_lane_time_loss": null,
+    "pit_lane_time_loss": 18,
     "typical_fuel_per_lap": null,
     "fuel_window": 0.08,
     "typical_tyre_degradation": null,
     "weather_factor": 1.0,
     "grip_evolution_rate": null,
-    "notes": "Semi-street layout, traction critical."
+    "notes": "Semi-street layout, traction critical.",
+    "tyre_stress_profile": "medium",
+    "strategy_presets": {
+      "default": {
+        "template": "balanced_two_stop",
+        "notes": "Reliable two-stop balances tyre life and track position.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      },
+      "alternate": {
+        "template": "aggressive_two_stop",
+        "notes": "Deploy when you need early track position or aggressive undercuts.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      }
+    }
   },
   {
     "id": "china",
@@ -25,13 +44,32 @@
     "num_laps": 56,
     "lap_record_time": null,
     "lap_record_holder": null,
-    "pit_lane_time_loss": null,
+    "pit_lane_time_loss": 23,
     "typical_fuel_per_lap": null,
     "fuel_window": 0.08,
     "typical_tyre_degradation": null,
     "weather_factor": 1.0,
     "grip_evolution_rate": null,
-    "notes": "Long T1–T2 spiral stresses fronts."
+    "notes": "Long T1\u2013T2 spiral stresses fronts.",
+    "tyre_stress_profile": "medium",
+    "strategy_presets": {
+      "default": {
+        "template": "balanced_two_stop",
+        "notes": "Reliable two-stop balances tyre life and track position.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      },
+      "alternate": {
+        "template": "aggressive_two_stop",
+        "notes": "Deploy when you need early track position or aggressive undercuts.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      }
+    }
   },
   {
     "id": "japan",
@@ -42,13 +80,32 @@
     "num_laps": 53,
     "lap_record_time": null,
     "lap_record_holder": null,
-    "pit_lane_time_loss": null,
+    "pit_lane_time_loss": 20,
     "typical_fuel_per_lap": null,
     "fuel_window": 0.08,
     "typical_tyre_degradation": null,
     "weather_factor": 1.0,
     "grip_evolution_rate": null,
-    "notes": "High downforce; Degners & 130R matter."
+    "notes": "High downforce; Degners & 130R matter.",
+    "tyre_stress_profile": "high",
+    "strategy_presets": {
+      "default": {
+        "template": "high_wear_three_stop",
+        "notes": "Surface wear is severe\u2014plan multiple short stints to protect pace.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      },
+      "alternate": {
+        "template": "balanced_two_stop",
+        "notes": "Switch if temperatures fall or you need to cover a rival on a two-stop.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      }
+    }
   },
   {
     "id": "bahrain",
@@ -59,13 +116,32 @@
     "num_laps": 57,
     "lap_record_time": null,
     "lap_record_holder": null,
-    "pit_lane_time_loss": null,
+    "pit_lane_time_loss": 22,
     "typical_fuel_per_lap": null,
     "fuel_window": 0.08,
     "typical_tyre_degradation": null,
     "weather_factor": 1.0,
     "grip_evolution_rate": null,
-    "notes": "Abrasive; big traction + braking events."
+    "notes": "Abrasive; big traction + braking events.",
+    "tyre_stress_profile": "high",
+    "strategy_presets": {
+      "default": {
+        "template": "high_wear_three_stop",
+        "notes": "Surface wear is severe\u2014plan multiple short stints to protect pace.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      },
+      "alternate": {
+        "template": "balanced_two_stop",
+        "notes": "Switch if temperatures fall or you need to cover a rival on a two-stop.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      }
+    }
   },
   {
     "id": "saudi_arabia",
@@ -76,13 +152,32 @@
     "num_laps": 50,
     "lap_record_time": null,
     "lap_record_holder": null,
-    "pit_lane_time_loss": null,
+    "pit_lane_time_loss": 16,
     "typical_fuel_per_lap": null,
     "fuel_window": 0.08,
     "typical_tyre_degradation": null,
     "weather_factor": 1.0,
     "grip_evolution_rate": null,
-    "notes": "Very high average speed street layout."
+    "notes": "Very high average speed street layout.",
+    "tyre_stress_profile": "medium",
+    "strategy_presets": {
+      "default": {
+        "template": "balanced_two_stop",
+        "notes": "Reliable two-stop balances tyre life and track position.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      },
+      "alternate": {
+        "template": "aggressive_two_stop",
+        "notes": "Deploy when you need early track position or aggressive undercuts.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      }
+    }
   },
   {
     "id": "miami",
@@ -93,13 +188,32 @@
     "num_laps": 57,
     "lap_record_time": null,
     "lap_record_holder": null,
-    "pit_lane_time_loss": null,
+    "pit_lane_time_loss": 18,
     "typical_fuel_per_lap": null,
     "fuel_window": 0.08,
     "typical_tyre_degradation": null,
     "weather_factor": 1.0,
     "grip_evolution_rate": null,
-    "notes": "Stop-start sections; surface evolution notable."
+    "notes": "Stop-start sections; surface evolution notable.",
+    "tyre_stress_profile": "medium",
+    "strategy_presets": {
+      "default": {
+        "template": "balanced_two_stop",
+        "notes": "Reliable two-stop balances tyre life and track position.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      },
+      "alternate": {
+        "template": "aggressive_two_stop",
+        "notes": "Deploy when you need early track position or aggressive undercuts.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      }
+    }
   },
   {
     "id": "imola",
@@ -110,13 +224,32 @@
     "num_laps": 63,
     "lap_record_time": null,
     "lap_record_holder": null,
-    "pit_lane_time_loss": null,
+    "pit_lane_time_loss": 27,
     "typical_fuel_per_lap": null,
     "fuel_window": 0.08,
     "typical_tyre_degradation": null,
     "weather_factor": 1.0,
     "grip_evolution_rate": null,
-    "notes": "Kerb usage & mechanical grip pay off."
+    "notes": "Kerb usage & mechanical grip pay off.",
+    "tyre_stress_profile": "medium",
+    "strategy_presets": {
+      "default": {
+        "template": "balanced_two_stop",
+        "notes": "Reliable two-stop balances tyre life and track position.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      },
+      "alternate": {
+        "template": "aggressive_two_stop",
+        "notes": "Deploy when you need early track position or aggressive undercuts.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      }
+    }
   },
   {
     "id": "monaco",
@@ -127,30 +260,68 @@
     "num_laps": 78,
     "lap_record_time": null,
     "lap_record_holder": null,
-    "pit_lane_time_loss": null,
+    "pit_lane_time_loss": 18,
     "typical_fuel_per_lap": null,
     "fuel_window": 0.08,
     "typical_tyre_degradation": null,
     "weather_factor": 1.0,
     "grip_evolution_rate": null,
-    "notes": "Track position king; very low deg."
+    "notes": "Track position king; very low deg.",
+    "tyre_stress_profile": "low",
+    "strategy_presets": {
+      "default": {
+        "template": "one_stop_conserve",
+        "notes": "Track position beats outright pace; stretch the rubber and stop once.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      },
+      "alternate": {
+        "template": "balanced_two_stop",
+        "notes": "Fallback when tyre wear spikes or a safety car invites a second stop.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      }
+    }
   },
   {
     "id": "spain",
     "name": "Circuit de Barcelona-Catalunya",
-    "location": "Montmeló, Spain",
+    "location": "Montmel\u00f3, Spain",
     "length_km": 4.675,
     "turns": 14,
     "num_laps": 66,
     "lap_record_time": null,
     "lap_record_holder": null,
-    "pit_lane_time_loss": null,
+    "pit_lane_time_loss": 20,
     "typical_fuel_per_lap": null,
     "fuel_window": 0.08,
     "typical_tyre_degradation": null,
     "weather_factor": 1.0,
     "grip_evolution_rate": null,
-    "notes": "Front-limited; good aero test track."
+    "notes": "Front-limited; good aero test track.",
+    "tyre_stress_profile": "high",
+    "strategy_presets": {
+      "default": {
+        "template": "high_wear_three_stop",
+        "notes": "Surface wear is severe\u2014plan multiple short stints to protect pace.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      },
+      "alternate": {
+        "template": "balanced_two_stop",
+        "notes": "Switch if temperatures fall or you need to cover a rival on a two-stop.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      }
+    }
   },
   {
     "id": "canada",
@@ -161,13 +332,32 @@
     "num_laps": 70,
     "lap_record_time": null,
     "lap_record_holder": null,
-    "pit_lane_time_loss": null,
+    "pit_lane_time_loss": 16,
     "typical_fuel_per_lap": null,
     "fuel_window": 0.08,
     "typical_tyre_degradation": null,
     "weather_factor": 1.0,
     "grip_evolution_rate": null,
-    "notes": "Braking + traction; chicanes define pace."
+    "notes": "Braking + traction; chicanes define pace.",
+    "tyre_stress_profile": "medium",
+    "strategy_presets": {
+      "default": {
+        "template": "balanced_two_stop",
+        "notes": "Reliable two-stop balances tyre life and track position.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      },
+      "alternate": {
+        "template": "aggressive_two_stop",
+        "notes": "Deploy when you need early track position or aggressive undercuts.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      }
+    }
   },
   {
     "id": "austria",
@@ -178,13 +368,32 @@
     "num_laps": 71,
     "lap_record_time": null,
     "lap_record_holder": null,
-    "pit_lane_time_loss": null,
+    "pit_lane_time_loss": 18,
     "typical_fuel_per_lap": null,
     "fuel_window": 0.08,
     "typical_tyre_degradation": null,
     "weather_factor": 1.0,
     "grip_evolution_rate": null,
-    "notes": "Short lap; traffic & track limits matter."
+    "notes": "Short lap; traffic & track limits matter.",
+    "tyre_stress_profile": "medium",
+    "strategy_presets": {
+      "default": {
+        "template": "balanced_two_stop",
+        "notes": "Reliable two-stop balances tyre life and track position.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      },
+      "alternate": {
+        "template": "aggressive_two_stop",
+        "notes": "Deploy when you need early track position or aggressive undercuts.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      }
+    }
   },
   {
     "id": "silverstone",
@@ -195,13 +404,32 @@
     "num_laps": 52,
     "lap_record_time": null,
     "lap_record_holder": null,
-    "pit_lane_time_loss": null,
+    "pit_lane_time_loss": 25,
     "typical_fuel_per_lap": null,
     "fuel_window": 0.08,
     "typical_tyre_degradation": null,
     "weather_factor": 1.0,
     "grip_evolution_rate": null,
-    "notes": "High-speed; aero efficiency rewarded."
+    "notes": "High-speed; aero efficiency rewarded.",
+    "tyre_stress_profile": "high",
+    "strategy_presets": {
+      "default": {
+        "template": "high_wear_three_stop",
+        "notes": "Surface wear is severe\u2014plan multiple short stints to protect pace.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      },
+      "alternate": {
+        "template": "balanced_two_stop",
+        "notes": "Switch if temperatures fall or you need to cover a rival on a two-stop.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      }
+    }
   },
   {
     "id": "belgium",
@@ -212,30 +440,68 @@
     "num_laps": 44,
     "lap_record_time": null,
     "lap_record_holder": null,
-    "pit_lane_time_loss": null,
+    "pit_lane_time_loss": 17,
     "typical_fuel_per_lap": null,
     "fuel_window": 0.08,
     "typical_tyre_degradation": null,
     "weather_factor": 1.0,
     "grip_evolution_rate": null,
-    "notes": "Very long lap; weather variability high."
+    "notes": "Very long lap; weather variability high.",
+    "tyre_stress_profile": "high",
+    "strategy_presets": {
+      "default": {
+        "template": "high_wear_three_stop",
+        "notes": "Surface wear is severe\u2014plan multiple short stints to protect pace.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      },
+      "alternate": {
+        "template": "balanced_two_stop",
+        "notes": "Switch if temperatures fall or you need to cover a rival on a two-stop.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      }
+    }
   },
   {
     "id": "hungary",
     "name": "Hungaroring",
-    "location": "Mogyoród, Hungary",
+    "location": "Mogyor\u00f3d, Hungary",
     "length_km": 4.381,
     "turns": 14,
     "num_laps": 70,
     "lap_record_time": null,
     "lap_record_holder": null,
-    "pit_lane_time_loss": null,
+    "pit_lane_time_loss": 20,
     "typical_fuel_per_lap": null,
     "fuel_window": 0.08,
     "typical_tyre_degradation": null,
     "weather_factor": 1.0,
     "grip_evolution_rate": null,
-    "notes": "Tight/twisty; Monaco without walls vibe."
+    "notes": "Tight/twisty; Monaco without walls vibe.",
+    "tyre_stress_profile": "high",
+    "strategy_presets": {
+      "default": {
+        "template": "high_wear_three_stop",
+        "notes": "Surface wear is severe\u2014plan multiple short stints to protect pace.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      },
+      "alternate": {
+        "template": "balanced_two_stop",
+        "notes": "Switch if temperatures fall or you need to cover a rival on a two-stop.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      }
+    }
   },
   {
     "id": "netherlands",
@@ -246,13 +512,32 @@
     "num_laps": 72,
     "lap_record_time": null,
     "lap_record_holder": null,
-    "pit_lane_time_loss": null,
+    "pit_lane_time_loss": 18,
     "typical_fuel_per_lap": null,
     "fuel_window": 0.08,
     "typical_tyre_degradation": null,
     "weather_factor": 1.0,
     "grip_evolution_rate": null,
-    "notes": "Banked corners; aero sensitivity high."
+    "notes": "Banked corners; aero sensitivity high.",
+    "tyre_stress_profile": "high",
+    "strategy_presets": {
+      "default": {
+        "template": "high_wear_three_stop",
+        "notes": "Surface wear is severe\u2014plan multiple short stints to protect pace.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      },
+      "alternate": {
+        "template": "balanced_two_stop",
+        "notes": "Switch if temperatures fall or you need to cover a rival on a two-stop.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      }
+    }
   },
   {
     "id": "monza",
@@ -263,13 +548,32 @@
     "num_laps": 53,
     "lap_record_time": null,
     "lap_record_holder": null,
-    "pit_lane_time_loss": null,
+    "pit_lane_time_loss": 23,
     "typical_fuel_per_lap": null,
     "fuel_window": 0.08,
     "typical_tyre_degradation": null,
     "weather_factor": 1.0,
     "grip_evolution_rate": null,
-    "notes": "Temple of Speed; low drag setups."
+    "notes": "Temple of Speed; low drag setups.",
+    "tyre_stress_profile": "medium",
+    "strategy_presets": {
+      "default": {
+        "template": "balanced_two_stop",
+        "notes": "Reliable two-stop balances tyre life and track position.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      },
+      "alternate": {
+        "template": "aggressive_two_stop",
+        "notes": "Deploy when you need early track position or aggressive undercuts.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      }
+    }
   },
   {
     "id": "baku",
@@ -280,30 +584,68 @@
     "num_laps": 51,
     "lap_record_time": null,
     "lap_record_holder": null,
-    "pit_lane_time_loss": null,
+    "pit_lane_time_loss": 18,
     "typical_fuel_per_lap": null,
     "fuel_window": 0.08,
     "typical_tyre_degradation": null,
     "weather_factor": 1.0,
     "grip_evolution_rate": null,
-    "notes": "Monster straight + tight castle section."
+    "notes": "Monster straight + tight castle section.",
+    "tyre_stress_profile": "low",
+    "strategy_presets": {
+      "default": {
+        "template": "one_stop_conserve",
+        "notes": "Track position beats outright pace; stretch the rubber and stop once.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      },
+      "alternate": {
+        "template": "balanced_two_stop",
+        "notes": "Fallback when tyre wear spikes or a safety car invites a second stop.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      }
+    }
   },
   {
     "id": "singapore",
     "name": "Marina Bay Street Circuit",
     "location": "Singapore",
-    "length_km": 4.940,
+    "length_km": 4.94,
     "turns": 19,
     "num_laps": 62,
     "lap_record_time": null,
     "lap_record_holder": null,
-    "pit_lane_time_loss": null,
+    "pit_lane_time_loss": 25,
     "typical_fuel_per_lap": null,
     "fuel_window": 0.08,
     "typical_tyre_degradation": null,
     "weather_factor": 1.0,
     "grip_evolution_rate": null,
-    "notes": "Hot/humid night race; high SC probability."
+    "notes": "Hot/humid night race; high SC probability.",
+    "tyre_stress_profile": "low",
+    "strategy_presets": {
+      "default": {
+        "template": "one_stop_conserve",
+        "notes": "Track position beats outright pace; stretch the rubber and stop once.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      },
+      "alternate": {
+        "template": "balanced_two_stop",
+        "notes": "Fallback when tyre wear spikes or a safety car invites a second stop.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      }
+    }
   },
   {
     "id": "austin",
@@ -314,47 +656,104 @@
     "num_laps": 56,
     "lap_record_time": null,
     "lap_record_holder": null,
-    "pit_lane_time_loss": null,
+    "pit_lane_time_loss": 19,
     "typical_fuel_per_lap": null,
     "fuel_window": 0.08,
     "typical_tyre_degradation": null,
     "weather_factor": 1.0,
     "grip_evolution_rate": null,
-    "notes": "Elevation change; esses punish front tyres."
+    "notes": "Elevation change; esses punish front tyres.",
+    "tyre_stress_profile": "medium",
+    "strategy_presets": {
+      "default": {
+        "template": "balanced_two_stop",
+        "notes": "Reliable two-stop balances tyre life and track position.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      },
+      "alternate": {
+        "template": "aggressive_two_stop",
+        "notes": "Deploy when you need early track position or aggressive undercuts.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      }
+    }
   },
   {
     "id": "mexico",
-    "name": "Autódromo Hermanos Rodríguez",
+    "name": "Aut\u00f3dromo Hermanos Rodr\u00edguez",
     "location": "Mexico City, Mexico",
     "length_km": 4.304,
     "turns": 17,
     "num_laps": 71,
     "lap_record_time": null,
     "lap_record_holder": null,
-    "pit_lane_time_loss": null,
+    "pit_lane_time_loss": 22,
     "typical_fuel_per_lap": null,
     "fuel_window": 0.08,
     "typical_tyre_degradation": null,
     "weather_factor": 1.0,
     "grip_evolution_rate": null,
-    "notes": "High altitude; low drag + cooling challenges."
+    "notes": "High altitude; low drag + cooling challenges.",
+    "tyre_stress_profile": "medium",
+    "strategy_presets": {
+      "default": {
+        "template": "balanced_two_stop",
+        "notes": "Reliable two-stop balances tyre life and track position.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      },
+      "alternate": {
+        "template": "aggressive_two_stop",
+        "notes": "Deploy when you need early track position or aggressive undercuts.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      }
+    }
   },
   {
     "id": "brazil",
-    "name": "Autódromo José Carlos Pace (Interlagos)",
-    "location": "São Paulo, Brazil",
+    "name": "Aut\u00f3dromo Jos\u00e9 Carlos Pace (Interlagos)",
+    "location": "S\u00e3o Paulo, Brazil",
     "length_km": 4.309,
     "turns": 15,
     "num_laps": 71,
     "lap_record_time": null,
     "lap_record_holder": null,
-    "pit_lane_time_loss": null,
+    "pit_lane_time_loss": 20,
     "typical_fuel_per_lap": null,
     "fuel_window": 0.08,
     "typical_tyre_degradation": null,
     "weather_factor": 1.0,
     "grip_evolution_rate": null,
-    "notes": "Short lap; traffic + safety cars common."
+    "notes": "Short lap; traffic + safety cars common.",
+    "tyre_stress_profile": "medium",
+    "strategy_presets": {
+      "default": {
+        "template": "balanced_two_stop",
+        "notes": "Reliable two-stop balances tyre life and track position.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      },
+      "alternate": {
+        "template": "aggressive_two_stop",
+        "notes": "Deploy when you need early track position or aggressive undercuts.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      }
+    }
   },
   {
     "id": "las_vegas",
@@ -365,13 +764,32 @@
     "num_laps": 50,
     "lap_record_time": null,
     "lap_record_holder": null,
-    "pit_lane_time_loss": null,
+    "pit_lane_time_loss": 17,
     "typical_fuel_per_lap": null,
     "fuel_window": 0.08,
     "typical_tyre_degradation": null,
     "weather_factor": 1.0,
     "grip_evolution_rate": null,
-    "notes": "Very long straights; cool night temps."
+    "notes": "Very long straights; cool night temps.",
+    "tyre_stress_profile": "low",
+    "strategy_presets": {
+      "default": {
+        "template": "one_stop_conserve",
+        "notes": "Track position beats outright pace; stretch the rubber and stop once.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      },
+      "alternate": {
+        "template": "balanced_two_stop",
+        "notes": "Fallback when tyre wear spikes or a safety car invites a second stop.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      }
+    }
   },
   {
     "id": "qatar",
@@ -382,13 +800,32 @@
     "num_laps": 57,
     "lap_record_time": null,
     "lap_record_holder": null,
-    "pit_lane_time_loss": null,
+    "pit_lane_time_loss": 25,
     "typical_fuel_per_lap": null,
     "fuel_window": 0.08,
     "typical_tyre_degradation": null,
     "weather_factor": 1.0,
     "grip_evolution_rate": null,
-    "notes": "Fast, flowing; tyre stress can spike."
+    "notes": "Fast, flowing; tyre stress can spike.",
+    "tyre_stress_profile": "medium",
+    "strategy_presets": {
+      "default": {
+        "template": "balanced_two_stop",
+        "notes": "Reliable two-stop balances tyre life and track position.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      },
+      "alternate": {
+        "template": "aggressive_two_stop",
+        "notes": "Deploy when you need early track position or aggressive undercuts.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      }
+    }
   },
   {
     "id": "abu_dhabi",
@@ -399,12 +836,31 @@
     "num_laps": 58,
     "lap_record_time": null,
     "lap_record_holder": null,
-    "pit_lane_time_loss": null,
+    "pit_lane_time_loss": 20,
     "typical_fuel_per_lap": null,
     "fuel_window": 0.08,
     "typical_tyre_degradation": null,
     "weather_factor": 1.0,
     "grip_evolution_rate": null,
-    "notes": "Twilight race; traction + tyre temps key."
+    "notes": "Twilight race; traction + tyre temps key.",
+    "tyre_stress_profile": "medium",
+    "strategy_presets": {
+      "default": {
+        "template": "balanced_two_stop",
+        "notes": "Reliable two-stop balances tyre life and track position.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      },
+      "alternate": {
+        "template": "aggressive_two_stop",
+        "notes": "Deploy when you need early track position or aggressive undercuts.",
+        "stint_offsets": {
+          "lap_bias": 0,
+          "wear_threshold": 0.8
+        }
+      }
+    }
   }
 ]
