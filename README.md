@@ -17,6 +17,22 @@ A comprehensive Formula 1 team management simulation built with Python.
 - **Weather Conditions** – Adapt your strategy to changing weather scenarios
 - **Safety Car** – Navigate the strategic opportunities of safety car periods
 
+#### Strategy & Tyre Management
+- Circuit presets now provide default and alternate pit plans with wear thresholds.
+- Live tyre degradation influences lap times, puncture risk, and pit urgency.
+- Use `P` during a race to open the strategy menu for your drivers, force a stop, delay it, or change the next compound.
+- Automated runs are available via `simulate_race_auto` in `src/race/simulation.py` for quick validation.
+
+#### Quick Validation
+```bash
+python - <<'PY'
+from src.race.simulation import simulate_race_auto
+results = simulate_race_auto("australia", seed=42)
+for driver, data in list(results.items())[:5]:
+    print(driver, data["position"], f"{data['total_time']:.1f}s")
+PY
+```
+
 ### Progression
 - **Rewards System** – Earn prizes based on race performance and championship standings
 - **Multi-Season Career** – Build your legacy across multiple racing seasons

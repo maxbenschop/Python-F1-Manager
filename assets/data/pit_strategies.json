@@ -1,0 +1,170 @@
+[
+  {
+    "id": "balanced_two_stop",
+    "name": "Balanced Two-Stop",
+    "description": "Opens on medium rubber before switching to hard for race control and finishing on a responsive compound.",
+    "stints": [
+      {
+        "compound": "medium",
+        "target_lap_fraction": 0.32,
+        "pit_window_fraction": [
+          0.27,
+          0.37
+        ]
+      },
+      {
+        "compound": "hard",
+        "target_lap_fraction": 0.66,
+        "pit_window_fraction": [
+          0.6,
+          0.72
+        ]
+      },
+      {
+        "compound": "medium",
+        "target_lap_fraction": 0.92,
+        "pit_window_fraction": [
+          0.86,
+          0.97
+        ]
+      }
+    ],
+    "recommended_compounds": [
+      "medium",
+      "hard",
+      "medium"
+    ],
+    "tyre_wear_expectation": "medium",
+    "safety_car_adjustment": {
+      "early": -2,
+      "late": 2
+    },
+    "notes": "Good baseline plan when tyre wear is manageable and track position can be covered with two stops."
+  },
+  {
+    "id": "aggressive_two_stop",
+    "name": "Aggressive Two-Stop",
+    "description": "Pushes the opening stint on softs for track position, taking an early first stop then offsetting for a late charge.",
+    "stints": [
+      {
+        "compound": "soft",
+        "target_lap_fraction": 0.25,
+        "pit_window_fraction": [
+          0.2,
+          0.3
+        ]
+      },
+      {
+        "compound": "medium",
+        "target_lap_fraction": 0.58,
+        "pit_window_fraction": [
+          0.52,
+          0.64
+        ]
+      },
+      {
+        "compound": "soft",
+        "target_lap_fraction": 0.88,
+        "pit_window_fraction": [
+          0.82,
+          0.94
+        ]
+      }
+    ],
+    "recommended_compounds": [
+      "soft",
+      "medium",
+      "soft"
+    ],
+    "tyre_wear_expectation": "medium",
+    "safety_car_adjustment": {
+      "early": -3,
+      "late": 3
+    },
+    "notes": "Ideal for undercut attempts or when a late safety car is likely; sacrifices tyre life for peaks in pace."
+  },
+  {
+    "id": "one_stop_conserve",
+    "name": "One-Stop Conservative",
+    "description": "Targets a long opening stint and limits race interruptions, protecting track position on low-deg circuits.",
+    "stints": [
+      {
+        "compound": "medium",
+        "target_lap_fraction": 0.52,
+        "pit_window_fraction": [
+          0.45,
+          0.58
+        ]
+      },
+      {
+        "compound": "hard",
+        "target_lap_fraction": 0.92,
+        "pit_window_fraction": [
+          0.85,
+          0.98
+        ]
+      }
+    ],
+    "recommended_compounds": [
+      "medium",
+      "hard"
+    ],
+    "tyre_wear_expectation": "low",
+    "safety_car_adjustment": {
+      "early": 1,
+      "late": 5
+    },
+    "notes": "Use when overtaking is difficult; relies on tyre preservation and clean air management."
+  },
+  {
+    "id": "high_wear_three_stop",
+    "name": "High-Wear Three-Stop",
+    "description": "Keeps tyre life under control on abrasive surfaces with three aggressive stints.",
+    "stints": [
+      {
+        "compound": "soft",
+        "target_lap_fraction": 0.21,
+        "pit_window_fraction": [
+          0.17,
+          0.25
+        ]
+      },
+      {
+        "compound": "medium",
+        "target_lap_fraction": 0.43,
+        "pit_window_fraction": [
+          0.38,
+          0.48
+        ]
+      },
+      {
+        "compound": "medium",
+        "target_lap_fraction": 0.65,
+        "pit_window_fraction": [
+          0.6,
+          0.7
+        ]
+      },
+      {
+        "compound": "soft",
+        "target_lap_fraction": 0.86,
+        "pit_window_fraction": [
+          0.8,
+          0.92
+        ]
+      }
+    ],
+    "recommended_compounds": [
+      "soft",
+      "medium",
+      "medium",
+      "soft"
+    ],
+    "tyre_wear_expectation": "high",
+    "safety_car_adjustment": {
+      "early": -4,
+      "late": 1
+    },
+    "notes": "Best when thermal degradation dominates and keeping tyre temperatures in range is difficult."
+  }
+]

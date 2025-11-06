@@ -1,0 +1,68 @@
+[
+  {
+    "compound": "soft",
+    "base_wear_per_lap": 0.045,
+    "warmup_laps": 1,
+    "warmup_penalty": 1.0,
+    "degradation_curve": [
+      {
+        "wear": 0.5,
+        "pace_penalty": 0.5
+      },
+      {
+        "wear": 0.7,
+        "pace_penalty": 1.2
+      },
+      {
+        "wear": 0.9,
+        "pace_penalty": 3.0
+      }
+    ],
+    "puncture_risk_wear": 0.95,
+    "puncture_probability": 0.02
+  },
+  {
+    "compound": "medium",
+    "base_wear_per_lap": 0.032,
+    "warmup_laps": 1,
+    "warmup_penalty": 0.6,
+    "degradation_curve": [
+      {
+        "wear": 0.55,
+        "pace_penalty": 0.4
+      },
+      {
+        "wear": 0.75,
+        "pace_penalty": 1.0
+      },
+      {
+        "wear": 0.92,
+        "pace_penalty": 2.0
+      }
+    ],
+    "puncture_risk_wear": 0.97,
+    "puncture_probability": 0.01
+  },
+  {
+    "compound": "hard",
+    "base_wear_per_lap": 0.025,
+    "warmup_laps": 2,
+    "warmup_penalty": 0.8,
+    "degradation_curve": [
+      {
+        "wear": 0.6,
+        "pace_penalty": 0.3
+      },
+      {
+        "wear": 0.8,
+        "pace_penalty": 0.8
+      },
+      {
+        "wear": 0.95,
+        "pace_penalty": 1.6
+      }
+    ],
+    "puncture_risk_wear": 0.99,
+    "puncture_probability": 0.005
+  }
+]
