@@ -1,0 +1,4 @@
+# F1 Manager Game Dependencies
+
+# Terminal menu for interactive UI
+simple-term-menu>=1.6.1

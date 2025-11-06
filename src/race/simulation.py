@@ -8,6 +8,51 @@ from typing import Dict, List, Any, Tuple
 
 from .pit_strategy import apply_pit_strategy
 
+# ============================================================================
+# TUNING CONSTANTS - Adjust these to fine-tune race realism
+# ============================================================================
+
+# Qualifying weights
+QUALI_DRIVER_WEIGHT = 0.60
+QUALI_AERO_WEIGHT = 0.20
+QUALI_GRIP_WEIGHT = 0.15
+QUALI_EXPERIENCE_WEIGHT = 0.05
+
+# Race performance weights
+RACE_PACE_WEIGHT = 0.45
+RACE_CRAFT_WEIGHT = 0.25
+RACE_POWER_WEIGHT = 0.10
+RACE_AERO_WEIGHT = 0.08
+RACE_FUEL_EFFICIENCY_WEIGHT = 0.05
+RACE_TYRE_WEAR_WEIGHT = 0.04
+RACE_EXPERIENCE_WEIGHT = 0.03
+
+# Position advantage multipliers
+POLE_POSITION_BONUS = 1.10
+P2_POSITION_BONUS = 1.08
+P3_POSITION_BONUS = 1.06
+TOP10_POSITION_BONUS_START = 1.04
+MIDFIELD_POSITION_MULTIPLIER = 0.98
+
+# Variance ranges (min, max)
+QUALI_VARIANCE = (0.97, 1.03)
+QUALI_VARIANCE_EXPERIENCED = (0.985, 1.015)  # For drivers with experience > 90
+RACE_VARIANCE_CHAMPION = (0.96, 1.04)  # For drivers with experience > 95
+RACE_VARIANCE_EXPERIENCED = (0.94, 1.06)  # For drivers with experience > 75
+RACE_VARIANCE_ROOKIE = (0.90, 1.10)  # For less experienced drivers
+
+# Track modifier strengths
+TRACK_AERO_MODIFIER = 0.12
+TRACK_TRACTION_MODIFIER = 0.08
+TRACK_STREET_DRIVER_MODIFIER = 0.05
+TRACK_POWER_MODIFIER = 0.06
+TRACK_BRAKING_MODIFIER = 0.05
+TRACK_SPEED_MODIFIER = 0.08
+TRACK_MECHANICAL_GRIP_MODIFIER = 0.04
+MONACO_POSITION_MULTIPLIER = 1.15  # Street circuits where overtaking is nearly impossible
+
+# ============================================================================
+
 # Load circuit data by ID from JSON file
 def load_circuit_data(circuit_id: str) -> Dict[str, Any]:
     circuits_file_path = os.path.join(os.path.dirname(__file__), '..', '..', 'assets', 'data', 'circuits.json')
@@ -104,32 +149,115 @@ def apply_track_specific_modifiers(team_score: float, team: Dict[str, Any], circ
 
     return team_score
 
-def simulate_qualifying(driver: Dict[str, Any], team: Dict[str, Any], circuit: Dict[str, Any]) -> float:
-    # Calculate qualifying lap time
-    base_time = 90.0
+def calculate_qualifying_score(driver: Dict[str, Any], car: Dict[str, Any], track: Dict[str, Any]) -> float:
+    """
+    Calculate qualifying performance score. Higher score = better grid position.
+    Based on 2024 F1 season patterns for realistic results.
+    """
+    # Base score from driver and car attributes
+    base_score = (
+        driver.get('qualifying', 80) * QUALI_DRIVER_WEIGHT +
+        car.get('aero', 0.90) * 100 * QUALI_AERO_WEIGHT +
+        car.get('grip', 0.90) * 100 * QUALI_GRIP_WEIGHT +
+        driver.get('experience', 70) * QUALI_EXPERIENCE_WEIGHT
+    )
 
-    driver_score = calculate_driver_overall_score(driver)
-    team_score = calculate_team_overall_score(team)
-    team_score = apply_track_specific_modifiers(team_score, team, circuit)
+    # Track-specific adjustments based on track.notes
+    track_mult = 1.0
+    notes = track.get('notes', '').lower()
 
-    # Driver and team influence on time
-    driver_factor = driver.get('qualifying', 80) * 0.12
-    team_factor = team_score * 13.0
+    if "high downforce" in notes or "aero" in notes:
+        track_mult += (car.get('aero', 0.90)) * TRACK_AERO_MODIFIER
+    if "traction" in notes:
+        track_mult += (car.get('tyre_grip', 0.90)) * TRACK_TRACTION_MODIFIER
+    if "street" in notes or "monaco" in track['name'].lower():
+        track_mult += (driver.get('qualifying', 80) / 100) * TRACK_STREET_DRIVER_MODIFIER
 
-    # Add randomness based on experience level
+    # Realistic lap-to-lap variance
     experience = driver.get('experience', 70)
-    if experience > 85:
-        random_var = random.uniform(-0.15, 0.15)
-    elif experience > 65:
-        random_var = random.uniform(-0.30, 0.30)
+    if experience > 90:
+        variance = random.uniform(*QUALI_VARIANCE_EXPERIENCED)
     else:
-        random_var = random.uniform(-0.45, 0.45)
+        variance = random.uniform(*QUALI_VARIANCE)
 
-    quali_time = base_time - driver_factor - team_factor + random_var
-    return quali_time
+    return base_score * track_mult * variance
+
+
+def simulate_qualifying(driver: Dict[str, Any], team: Dict[str, Any], circuit: Dict[str, Any]) -> float:
+    """
+    Wrapper function to maintain compatibility with existing code.
+    Returns a score where HIGHER = BETTER (pole position).
+    """
+    return calculate_qualifying_score(driver, team, circuit)
+
+def calculate_race_performance(driver: Dict[str, Any], car: Dict[str, Any], track: Dict[str, Any], starting_position: int) -> float:
+    """
+    Calculate race performance score. Higher score = better finishing position.
+    Incorporates starting position advantage, track characteristics, and realistic variance.
+    """
+    # Base race performance
+    base_perf = (
+        driver.get('pace', 80) * RACE_PACE_WEIGHT +
+        driver.get('racecraft', 80) * RACE_CRAFT_WEIGHT +
+        car.get('power', 0.90) * 100 * RACE_POWER_WEIGHT +
+        car.get('aero', 0.90) * 100 * RACE_AERO_WEIGHT +
+        car.get('fuel_efficiency', 0.90) * 100 * RACE_FUEL_EFFICIENCY_WEIGHT +
+        car.get('tyre_wear', 0.90) * 100 * RACE_TYRE_WEAR_WEIGHT +
+        driver.get('experience', 70) * RACE_EXPERIENCE_WEIGHT
+    )
+
+    # Starting position advantage (track position is critical in F1)
+    if starting_position == 1:
+        pos_bonus = POLE_POSITION_BONUS
+    elif starting_position == 2:
+        pos_bonus = P2_POSITION_BONUS
+    elif starting_position == 3:
+        pos_bonus = P3_POSITION_BONUS
+    elif starting_position <= 10:
+        pos_bonus = TOP10_POSITION_BONUS_START - (starting_position - 4) * 0.01
+    else:
+        pos_bonus = MIDFIELD_POSITION_MULTIPLIER - (starting_position - 11) * 0.003
+
+    # Track-specific race factors
+    track_mult = 1.0
+    notes = track.get('notes', '').lower()
+
+    if "traction" in notes:
+        track_mult += (car.get('power', 0.90)) * TRACK_POWER_MODIFIER
+    if "braking" in notes:
+        track_mult += (car.get('brakes', 0.90)) * TRACK_BRAKING_MODIFIER
+    if "straight" in notes or "speed" in notes:
+        track_mult += (car.get('power', 0.90)) * TRACK_SPEED_MODIFIER
+    if "monaco" in track['name'].lower() or "street" in notes:
+        pos_bonus *= MONACO_POSITION_MULTIPLIER  # Overtaking nearly impossible
+    if "mechanical grip" in notes or "kerb" in notes:
+        track_mult += (car.get('suspension', 0.90)) * TRACK_MECHANICAL_GRIP_MODIFIER
+
+    # Race variance (strategy, tire deg, mistakes, incidents)
+    experience = driver.get('experience', 70)
+    if experience > 95:
+        race_var = random.uniform(*RACE_VARIANCE_CHAMPION)  # Champions very consistent
+    elif experience > 75:
+        race_var = random.uniform(*RACE_VARIANCE_EXPERIENCED)  # Experienced drivers
+    else:
+        race_var = random.uniform(*RACE_VARIANCE_ROOKIE)  # Rookies more variable
+
+    return base_perf * pos_bonus * track_mult * race_var
+
+
+def check_reliability(car: Dict[str, Any]) -> bool:
+    """
+    Returns True if car finishes race, False if DNF.
+    Based on car reliability and wear ratings.
+    """
+    finish_probability = car.get('reliability', 0.95) * 0.85 + car.get('wear', 0.95) * 0.15
+    return random.random() < finish_probability
+
 
 def simulate_dnf(driver: Dict[str, Any], team: Dict[str, Any]) -> Tuple[bool, str]:
-    # Check if driver DNFs this lap
+    """
+    Check if driver DNFs this lap. Uses per-lap DNF probability.
+    """
     dnf_chance = (1.0 - team.get('reliability', 0.95)) * 100
 
     # Inexperienced drivers are more likely to crash
@@ -263,13 +391,13 @@ def race_simulation(circuit_id: str, driver_names: List[str] = None) -> Dict[str
             'quali_time': quali_time
         })
 
-    # Sort by fastest qualifying time
-    qualifying_results.sort(key=lambda x: x['quali_time'])
+    # Sort by qualifying score (higher = better position)
+    qualifying_results.sort(key=lambda x: x['quali_time'], reverse=True)
 
     print("\n📊 QUALIFYING RESULTS:")
     print("-" * 60)
     for i, result in enumerate(qualifying_results, 1):
-        print(f"P{i:2d}. {result['driver_name']:<20} [{result['team']['name']:<12}] {result['quali_time']:.3f}s")
+        print(f"P{i:2d}. {result['driver_name']:<20} [{result['team']['name']:<12}] Score: {result['quali_time']:.2f}")
 
     # PHASE 2: Initialize race state
     print("\n🏁 STARTING RACE...")
@@ -285,16 +413,8 @@ def race_simulation(circuit_id: str, driver_names: List[str] = None) -> Dict[str
         team = quali_result['team']
         driver_name = quali_result['driver_name']
 
-        # Calculate overall race performance score
-        race_performance = (
-            driver.get('pace', 80) * 0.28 +
-            driver.get('racecraft', 80) * 0.18 +
-            driver.get('experience', 80) * 0.12 +
-            calculate_team_overall_score(team) * 100 * 0.38 +
-            team.get('tyre_wear', 0.90) * 100 * 0.04
-        )
-
-        race_performance += random.uniform(-3, 3)
+        # Calculate overall race performance score using new realistic algorithm
+        race_performance = calculate_race_performance(driver, team, circuit, grid_pos)
 
         race_results.append({
             'driver_name': driver_name,
