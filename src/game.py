@@ -355,3 +355,30 @@ def exit_game():
     print_header("🏎️  F1 MANAGER 2026  🏁")
     print("\nThank you for playing F1 Manager 2026! Goodbye!\n")
     exit()
+
+
+def main():
+    """Main entry point for the F1 Manager game"""
+    clear_screen()
+    print_header("🏎️  F1 MANAGER 2026  🏁")
+    print_section("WELCOME")
+
+    # Check if save file exists
+    if not check_save_file():
+        print("\n❌ No saved game found.")
+        print("\nTo start a new game, run:")
+        print("  python src/team/start.py")
+        print("\nOr use the full game launcher if available.")
+        return
+
+    # Load save data and start main menu
+    try:
+        team, driver1, driver2 = load_save_data()
+        main_menu(team, driver1, driver2)
+    except Exception as e:
+        print(f"\n❌ Error loading save file: {e}")
+        print("Please start a new game.")
+
+
+if __name__ == "__main__":
+    main()
