@@ -132,10 +132,38 @@ for driver in drivers_data:
         driver_copy['team'] = selected_team
         selected_drivers_data.append(driver_copy)
 
+# Get selected team's stats from teams.json
+selected_team_data = next((t for t in teams_data if t['name'] == selected_team), None)
+if not selected_team_data:
+    print(f"\nError: Team {selected_team} not found in teams.json")
+    exit()
+
+# Copy team stats (exclude non-stat fields)
+team_stats = {
+    "name": selected_team_data['name'],
+    "engine": selected_team_data['engine'],
+    "chassis": selected_team_data['chassis'],
+    "reliability": selected_team_data['reliability'],
+    "wear": selected_team_data['wear'],
+    "grip": selected_team_data['grip'],
+    "aero": selected_team_data['aero'],
+    "power": selected_team_data['power'],
+    "fuel_efficiency": selected_team_data['fuel_efficiency'],
+    "pit_stop_speed": selected_team_data['pit_stop_speed'],
+    "tyre_wear": selected_team_data['tyre_wear'],
+    "tyre_grip": selected_team_data['tyre_grip'],
+    "suspension": selected_team_data['suspension'],
+    "brakes": selected_team_data['brakes'],
+    "weight": selected_team_data['weight']
+}
+
 # Create new save data structure
 save_data = {
+    "selectedTeam": selected_team,
+    "teamStats": team_stats,
     "drivers": selected_drivers_data,
-    "races": []
+    "races": [],
+    "money": 0
 }
 
 # Ensure the save directory exists

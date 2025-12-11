@@ -83,6 +83,24 @@ def load_team_data() -> Dict[str, Dict[str, Any]]:
             teams_dict['Racing Bulls'] = team
             teams_dict['RB'] = team
 
+    # Load save data and override player's team stats with upgraded stats
+    save_file_path = os.path.join(os.path.dirname(__file__), '..', '..', 'assets', 'data', 'save', 'save.json')
+    if os.path.exists(save_file_path):
+        try:
+            with open(save_file_path, 'r') as f:
+                save_data = json.load(f)
+
+            # If there's a selected team with upgraded stats, use those
+            if 'selectedTeam' in save_data and 'teamStats' in save_data:
+                team_name = save_data['selectedTeam']
+                upgraded_stats = save_data['teamStats']
+
+                # Update the team in teams_dict with upgraded stats
+                if team_name in teams_dict:
+                    teams_dict[team_name].update(upgraded_stats)
+        except (json.JSONDecodeError, IOError):
+            pass  # If save file is corrupted, just use base stats
+
     return teams_dict
 
 # Load F1 drivers and merge with user's F2 drivers from save file
