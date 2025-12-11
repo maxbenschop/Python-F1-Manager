@@ -28,6 +28,10 @@ RACE_AERO_WEIGHT = 0.08
 RACE_FUEL_EFFICIENCY_WEIGHT = 0.05
 RACE_TYRE_WEAR_WEIGHT = 0.04
 RACE_EXPERIENCE_WEIGHT = 0.03
+# Lap time shaping
+BASE_LAP_TIME = 95.0
+RACE_PERF_BASELINE = 90.0
+RACE_PERF_LAPTIME_SCALER = 0.18
 
 # Position advantage multipliers
 POLE_POSITION_BONUS = 1.10
@@ -692,19 +696,20 @@ def race_simulation(
     stress_profile = circuit.get('tyre_stress_profile', 'medium')
 
     for lap_num in range(1, total_laps + 1):
-        if skip_to_end:
-            break
+        suppress_output = skip_to_end
 
-        print(f"\n{'=' * 60}")
-        print(f"LAP {lap_num}/{total_laps}")
-        print(f"{'=' * 60}")
+        if not suppress_output:
+            print(f"\n{'=' * 60}")
+            print(f"LAP {lap_num}/{total_laps}")
+            print(f"{'=' * 60}")
 
         # Get currently running drivers
         running_drivers = [r for r in race_results if r['status'] == 'Running']
 
         # Safety car deployment
         if lap_num == safety_car_lap:
-            print("\n🚨 SAFETY CAR DEPLOYED!")
+            if not suppress_output:
+                print("\n🚨 SAFETY CAR DEPLOYED!")
             overtaking_difficulty *= 0.3
 
         # Check for DNFs (1.5% chance per lap)
@@ -715,14 +720,16 @@ def race_simulation(
                     driver_state['status'] = 'DNF'
                     driver_state['incident'] = dnf_reason
                     dnf_drivers.append(driver_state)
-                    print(f"\n❌ {driver_state['driver_name']} retires - {dnf_reason}")
+                    if not suppress_output:
+                        print(f"\n❌ {driver_state['driver_name']} retires - {dnf_reason}")
 
             tyre_state = driver_state.get('tyre_state')
             if isinstance(tyre_state, TyreState) and TYRE_MODEL.check_random_puncture(tyre_state):
                 driver_state['status'] = 'DNF'
                 driver_state['incident'] = 'Tyre failure'
                 dnf_drivers.append(driver_state)
-                print(f"\n❌ {driver_state['driver_name']} retires - Tyre failure")
+                if not suppress_output:
+                    print(f"\n❌ {driver_state['driver_name']} retires - Tyre failure")
 
         # Update running drivers list after DNFs
         running_drivers = [r for r in race_results if r['status'] == 'Running']
@@ -732,12 +739,13 @@ def race_simulation(
         for driver_state in running_drivers:
             if lap_num == 1:
                 # Lap 1: maintain grid order with small gaps
-                lap_time = 95.0 + (driver_state['grid_position'] - 1) * 0.5
+                lap_time = BASE_LAP_TIME + (driver_state['grid_position'] - 1) * 0.5
                 lap_time += random.uniform(-0.02, 0.02)
             else:
                 # Regular laps: performance based
-                lap_time = 95.0 - (driver_state['race_performance'] - 85) * 0.35
-                lap_time += random.uniform(-0.15, 0.15)
+                perf_delta = (driver_state['race_performance'] - RACE_PERF_BASELINE) * RACE_PERF_LAPTIME_SCALER
+                lap_time = BASE_LAP_TIME - perf_delta
+                lap_time += random.uniform(-0.12, 0.12)
 
             tyre_state = driver_state.get('tyre_state')
             if isinstance(tyre_state, TyreState):
@@ -788,36 +796,37 @@ def race_simulation(
         lap_events.extend(position_changes)
 
         # Display current standings
-        print("\nCurrent Positions:")
-        leader_time = running_drivers[0]['total_race_time']
+        if not suppress_output:
+            print("\nCurrent Positions:")
+            leader_time = running_drivers[0]['total_race_time']
 
-        for idx, driver_state in enumerate(running_drivers, 1):
-            if idx == 1:
-                gap_str = ""
-            else:
-                gap_to_leader = driver_state['total_race_time'] - leader_time
-                if gap_to_leader < 60:
-                    gap_str = f" +{gap_to_leader:.1f}s"
+            for idx, driver_state in enumerate(running_drivers, 1):
+                if idx == 1:
+                    gap_str = ""
                 else:
-                    minutes = int(gap_to_leader // 60)
-                    seconds = gap_to_leader % 60
-                    gap_str = f" +{minutes}:{seconds:04.1f}"
-            tyre_state = driver_state.get('tyre_state')
-            tyre_info = ""
-            if isinstance(tyre_state, TyreState):
-                tyre_info = f" | {tyre_state_summary(tyre_state)}"
-            print(f"  P{idx:2d}. {driver_state['driver_name']:<20} [{driver_state['team']['name']:<12}]{gap_str}{tyre_info}")
+                    gap_to_leader = driver_state['total_race_time'] - leader_time
+                    if gap_to_leader < 60:
+                        gap_str = f" +{gap_to_leader:.1f}s"
+                    else:
+                        minutes = int(gap_to_leader // 60)
+                        seconds = gap_to_leader % 60
+                        gap_str = f" +{minutes}:{seconds:04.1f}"
+                tyre_state = driver_state.get('tyre_state')
+                tyre_info = ""
+                if isinstance(tyre_state, TyreState):
+                    tyre_info = f" | {tyre_state_summary(tyre_state)}"
+                print(f"  P{idx:2d}. {driver_state['driver_name']:<20} [{driver_state['team']['name']:<12}]{gap_str}{tyre_info}")
 
-        # Display lap events
-        if lap_events:
-            print("\nLap Events:")
-            for event in lap_events:
-                print(event)
-        else:
-            print("\n  No significant events this lap")
+            # Display lap events
+            if lap_events:
+                print("\nLap Events:")
+                for event in lap_events:
+                    print(event)
+            else:
+                print("\n  No significant events this lap")
 
         # Wait for user input
-        if lap_num < total_laps and not auto_mode:
+        if lap_num < total_laps and not auto_mode and not skip_to_end:
             print(f"\n[ENTER = Next lap | S = Skip to results | P = Strategy menu]")
             while True:
                 key = get_key_press()
@@ -831,17 +840,11 @@ def race_simulation(
                     continue
                 break
 
-    # Finalize positions
-    if skip_to_end:
-        running_drivers = [r for r in race_results if r['status'] == 'Running']
-        running_drivers.sort(key=lambda x: (-x['race_performance'], x['grid_position']))
-        for position, driver_state in enumerate(running_drivers, 1):
-            driver_state['final_position'] = position
-    else:
-        running_drivers = [r for r in race_results if r['status'] == 'Running']
-        running_drivers.sort(key=lambda x: x['current_position'])
-        for position, driver_state in enumerate(running_drivers, 1):
-            driver_state['final_position'] = position
+    # Finalize positions using on-track order (even when skipping output we still simulate every lap)
+    running_drivers = [r for r in race_results if r['status'] == 'Running']
+    running_drivers.sort(key=lambda x: x['current_position'])
+    for position, driver_state in enumerate(running_drivers, 1):
+        driver_state['final_position'] = position
 
     # Set final race times
     running_drivers = [r for r in race_results if r['status'] == 'Running']

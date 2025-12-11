@@ -58,6 +58,15 @@ class TyreModel:
         "medium": 1.0,
         "high": 1.15,
     }
+    # Global scaling for degradation impact on lap time.
+    PACE_PENALTY_SCALE: float = 0.6
+    # Small pace boost on fresh tyres that fades as wear builds to reward aggressive undercuts.
+    FRESH_TYRE_BONUS: Dict[str, float] = {
+        "soft": 0.35,
+        "medium": 0.28,
+        "hard": 0.22,
+    }
+    FRESH_WINDOW_WEAR: float = 0.20
 
     def __init__(self, data_path: Optional[Path] = None):
         if data_path is None:
@@ -97,17 +106,67 @@ class TyreModel:
 
         return wear_delta, penalty
 
+    def _fresh_tyre_bonus(self, wear: float, compound: TyreCompound) -> float:
+        peak_bonus = self.FRESH_TYRE_BONUS.get(compound.name.lower(), 0.0)
+        if peak_bonus <= 0 or wear >= self.FRESH_WINDOW_WEAR:
+            return 0.0
+        # Linear fade to zero across the opening wear window.
+        return peak_bonus * (1.0 - (wear / self.FRESH_WINDOW_WEAR))
+
     def _calculate_penalty(self, tyre_state: TyreState, compound: TyreCompound) -> float:
+        """
+        Convert tyre wear into a lap time penalty.
+        Uses linear interpolation across the degradation curve so every percent of wear
+        slows the car down instead of only applying chunked penalties at thresholds.
+        """
         penalty = 0.0
 
         if tyre_state.laps_on_tyre <= compound.warmup_laps:
             penalty += compound.warmup_penalty
 
-        for degradation_point in compound.degradation_curve:
-            if tyre_state.wear >= degradation_point.wear:
-                penalty += degradation_point.pace_penalty
+        wear = tyre_state.wear
+        curve = compound.degradation_curve
 
-        return penalty
+        if not curve:
+            # Fallback: 2.0s penalty at 100% wear, scaled linearly.
+            return penalty + wear * 2.0
+
+        # If we're before the first defined point, scale up from 0.
+        first_point = curve[0]
+        if wear <= first_point.wear:
+            scale = first_point.pace_penalty / max(first_point.wear, 1e-6)
+            deg_penalty = wear * scale
+            adjusted = deg_penalty * self.PACE_PENALTY_SCALE
+            fresh_bonus = self._fresh_tyre_bonus(wear, compound)
+            return penalty + max(0.0, adjusted - fresh_bonus)
+
+        # Walk the curve and interpolate between neighbours.
+        for prev_point, next_point in zip(curve[:-1], curve[1:]):
+            if wear <= next_point.wear:
+                span = max(next_point.wear - prev_point.wear, 1e-6)
+                progress = (wear - prev_point.wear) / span
+                deg_penalty = prev_point.pace_penalty + progress * (
+                    next_point.pace_penalty - prev_point.pace_penalty
+                )
+                adjusted = deg_penalty * self.PACE_PENALTY_SCALE
+                fresh_bonus = self._fresh_tyre_bonus(wear, compound)
+                return penalty + max(0.0, adjusted - fresh_bonus)
+
+        # Beyond the final point: continue the last slope so wear keeps hurting pace.
+        if len(curve) == 1:
+            deg_penalty = curve[-1].pace_penalty
+            adjusted = deg_penalty * self.PACE_PENALTY_SCALE
+            fresh_bonus = self._fresh_tyre_bonus(wear, compound)
+            return penalty + max(0.0, adjusted - fresh_bonus)
+
+        last = curve[-1]
+        second_last = curve[-2]
+        tail_span = max(last.wear - second_last.wear, 1e-6)
+        tail_slope = (last.pace_penalty - second_last.pace_penalty) / tail_span
+        deg_penalty = last.pace_penalty + max((wear - last.wear) * tail_slope, 0.0)
+        adjusted = deg_penalty * self.PACE_PENALTY_SCALE
+        fresh_bonus = self._fresh_tyre_bonus(wear, compound)
+        return penalty + max(0.0, adjusted - fresh_bonus)
 
     def check_random_puncture(self, tyre_state: TyreState) -> bool:
         compound = self.get_compound(tyre_state.compound)
@@ -119,4 +178,3 @@ class TyreModel:
 
 
 TYRE_MODEL = TyreModel()
-
