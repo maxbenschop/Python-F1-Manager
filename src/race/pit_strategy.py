@@ -10,8 +10,8 @@ from .strategy_models import (
 )
 
 _STRATEGY_REPOSITORY = StrategyRepository()
-_TYRE_WEAR_PIT_THRESHOLD = 0.78
-_TYRE_CRITICAL_THRESHOLD = 0.9
+_TYRE_WEAR_PIT_THRESHOLD = 0.82  # allow slightly longer stints so aggressive strategies can stretch
+_TYRE_CRITICAL_THRESHOLD = 0.92
 
 
 def get_strategy_template(strategy_id: str) -> Optional[RaceStrategy]:
