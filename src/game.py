@@ -12,6 +12,7 @@ if project_root not in sys.path:
 from src.race.simulation import race_simulation
 from src.utils.ui import clear_screen, print_header, print_section
 from src.team.upgrades import get_available_upgrades, purchase_upgrade
+from src.team.training import run_training_session
 
 
 def start_new_game():
@@ -77,9 +78,10 @@ def main_menu(selected_team=None, selected_driver1=None, selected_driver2=None):
         "1. View Team Details",
         "2. View Driver Details",
         "3. Upgrade Team",
-        "4. Start Race",
-        "5. View Race History",
-        "6. Exit Game"
+        "4. Train Drivers",
+        "5. Start Race",
+        "6. View Race History",
+        "7. Exit Game"
     ]
     terminal_menu = TerminalMenu(
         options,
@@ -97,11 +99,13 @@ def main_menu(selected_team=None, selected_driver1=None, selected_driver2=None):
         view_driver_details(selected_driver1, selected_driver2)
     elif selected_option == "3. Upgrade Team":
         upgrade_team(selected_team, selected_driver1, selected_driver2)
-    elif selected_option == "4. Start Race":
+    elif selected_option == "4. Train Drivers":
+        train_drivers(selected_team, selected_driver1, selected_driver2)
+    elif selected_option == "5. Start Race":
         start_race(selected_team, selected_driver1, selected_driver2)
-    elif selected_option == "5. View Race History":
+    elif selected_option == "6. View Race History":
         view_race_history(selected_team, selected_driver1, selected_driver2)
-    elif selected_option == "6. Exit Game":
+    elif selected_option == "7. Exit Game":
         exit_game()
 
 def view_team_details(team):
@@ -233,18 +237,21 @@ def view_driver_details(driver1, driver2):
     print_section("DRIVER DETAILS")
 
     # Load driver data
-    drivers_file_path = os.path.join(os.path.dirname(__file__), '..', 'assets', 'data', 'f2_drivers.json')
+    drivers_file_path = os.path.join(os.path.dirname(__file__), '..', 'assets', 'data', 'save', 'save.json')
     with open(drivers_file_path, 'r') as f:
-        drivers_data = json.load(f)
+        save_data = json.load(f)
+        drivers_data = save_data.get("drivers", [])
 
     def print_driver_details(driver_name):
         driver_info = next((d for d in drivers_data if d['name'] == driver_name), None)
         if driver_info:
+            confidence = driver_info.get('confidence', 0.55) * 100
             print(f"\nName: {driver_info['name']}")
             print(f"Experience: {driver_info.get('experience', 0)}")
-            print(f"Racecraft: {driver_info.get('racecraft', 0)}")
-            print(f"Pace: {driver_info.get('pace', 0)}")
+            print(f"Racecraft:  {driver_info.get('racecraft', 0)}")
+            print(f"Pace:       {driver_info.get('pace', 0)}")
             print(f"Qualifying: {driver_info.get('qualifying', 0)}")
+            print(f"Confidence: {confidence:5.1f}%")
         else:
             print(f"\nDriver {driver_name} details not found.")
 
@@ -255,6 +262,16 @@ def view_driver_details(driver1, driver2):
 
     input("\nPress ENTER to return to the main menu...")
     main_menu(None, driver1, driver2) 
+
+def train_drivers(team, driver1, driver2):
+    clear_screen()
+    print_header("🏎️  F1 MANAGER 2026  🏁")
+    print_section("TRAINING")
+
+    print("\nPrepare your drivers with a one-race training boost.")
+    run_training_session(team, [driver1, driver2], min_sessions=1, max_sessions=3)
+    input("\nPress ENTER to return to the main menu...")
+    main_menu(team, driver1, driver2)
 
 def start_race(team, driver1, driver2):
     clear_screen()
@@ -309,6 +326,10 @@ def start_race(team, driver1, driver2):
     clear_screen()
     print_header("🏎️  F1 MANAGER 2026  🏁")
     print_section(f"RACE AT {selected_circuit['name'].upper()}")
+
+    # Mandatory pre-race training: 1–3 sessions
+    print("\nTraining is required before every race (1–3 sessions).")
+    run_training_session(team, [driver1, driver2], min_sessions=1, max_sessions=3)
 
     # Run race simulation
     race_results = race_simulation(
