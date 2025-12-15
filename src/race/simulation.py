@@ -122,6 +122,10 @@ def load_driver_data() -> Dict[str, Dict[str, Any]]:
             if 'drivers' in save_data:
                 drivers_data.extend(save_data['drivers'])
 
+    # Apply defaults to ensure confidence is present
+    for driver in drivers_data:
+        driver['confidence'] = max(0.0, min(1.0, float(driver.get('confidence', 0.5))))
+
     return {driver['name']: driver for driver in drivers_data}
 
 
@@ -358,7 +362,8 @@ def calculate_qualifying_score(driver: Dict[str, Any], car: Dict[str, Any], trac
         driver.get('qualifying', 80) * QUALI_DRIVER_WEIGHT +
         car.get('aero', 0.90) * 100 * QUALI_AERO_WEIGHT +
         car.get('grip', 0.90) * 100 * QUALI_GRIP_WEIGHT +
-        driver.get('experience', 70) * QUALI_EXPERIENCE_WEIGHT
+        driver.get('experience', 70) * QUALI_EXPERIENCE_WEIGHT +
+        driver.get('confidence', 0.55) * 100 * 0.05
     )
 
     # Track-specific adjustments based on track.notes
@@ -402,7 +407,8 @@ def calculate_race_performance(driver: Dict[str, Any], car: Dict[str, Any], trac
         car.get('aero', 0.90) * 100 * RACE_AERO_WEIGHT +
         car.get('fuel_efficiency', 0.90) * 100 * RACE_FUEL_EFFICIENCY_WEIGHT +
         car.get('tyre_wear', 0.90) * 100 * RACE_TYRE_WEAR_WEIGHT +
-        driver.get('experience', 70) * RACE_EXPERIENCE_WEIGHT
+        driver.get('experience', 70) * RACE_EXPERIENCE_WEIGHT +
+        driver.get('confidence', 0.55) * 100 * 0.06
     )
 
     # Starting position advantage (track position is critical in F1)
